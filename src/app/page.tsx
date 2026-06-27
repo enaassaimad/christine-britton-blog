@@ -12,6 +12,9 @@ import { CategoryView } from '@/components/public/category-view'
 import { BlogView } from '@/components/public/blog-view'
 import { AboutView } from '@/components/public/about-view'
 import { ContactView } from '@/components/public/contact-view'
+import { ShopView } from '@/components/public/shop-view'
+import { ProductView } from '@/components/public/product-view'
+import { PageView } from '@/components/public/page-view'
 import { AdminApp } from '@/components/admin/admin-app'
 
 function PublicSite() {
@@ -27,6 +30,9 @@ function PublicSite() {
         {route.name === 'search' && <BlogView initialQuery={route.q} />}
         {route.name === 'about' && <AboutView />}
         {route.name === 'contact' && <ContactView />}
+        {route.name === 'shop' && <ShopView />}
+        {route.name === 'product' && <ProductView slug={route.slug} />}
+        {route.name === 'page' && <PageView slug={route.slug} />}
       </main>
       <Footer />
     </div>

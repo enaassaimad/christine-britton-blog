@@ -147,13 +147,14 @@ export function SettingsManager() {
               <div className="grid gap-4 md:grid-cols-2">
                 <Field label="Header slot ID"><Input value={s.adsenseSlotHeader || ''} onChange={(e) => update({ adsenseSlotHeader: e.target.value })} className="font-mono" /></Field>
                 <Field label="In-article slot ID"><Input value={s.adsenseSlotInArticle || ''} onChange={(e) => update({ adsenseSlotInArticle: e.target.value })} className="font-mono" /></Field>
+                <Field label="In-content slot ID"><Input value={s.adsenseSlotInContent || ''} onChange={(e) => update({ adsenseSlotInContent: e.target.value })} className="font-mono" /></Field>
                 <Field label="Sidebar slot ID"><Input value={s.adsenseSlotSidebar || ''} onChange={(e) => update({ adsenseSlotSidebar: e.target.value })} className="font-mono" /></Field>
                 <Field label="Footer slot ID"><Input value={s.adsenseSlotFooter || ''} onChange={(e) => update({ adsenseSlotFooter: e.target.value })} className="font-mono" /></Field>
               </div>
               <div className="rounded-lg bg-muted/50 p-4 text-sm">
                 <p className="font-medium mb-2 flex items-center gap-2"><ImageIcon className="h-4 w-4" /> Ad placement preview</p>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-                  {[['Header', s.adsenseSlotHeader], ['In-article', s.adsenseSlotInArticle], ['Sidebar', s.adsenseSlotSidebar], ['Footer', s.adsenseSlotFooter]].map(([label, slot]) => (
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs">
+                  {[['Header', s.adsenseSlotHeader], ['In-article', s.adsenseSlotInArticle], ['In-content', s.adsenseSlotInContent], ['Sidebar', s.adsenseSlotSidebar], ['Footer', s.adsenseSlotFooter]].map(([label, slot]) => (
                     <div key={label} className="rounded border border-dashed border-border p-2 text-center">
                       <p className="font-medium">{label}</p>
                       <p className="text-muted-foreground font-mono mt-0.5">{slot || '—'}</p>

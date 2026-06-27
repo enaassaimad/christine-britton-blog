@@ -6,6 +6,7 @@ import type { Post, Category, User, Comment } from '@/lib/types'
 import { useApp } from '@/store/app-store'
 import { Markdown } from '@/components/site/markdown'
 import { AdSlot } from '@/components/site/ad-slot'
+import { ProductsWidget } from '@/components/site/products-widget'
 import { PostCard } from '@/components/site/post-card'
 import { Newsletter } from '@/components/site/newsletter'
 import { useSettings } from '@/components/site/settings-context'
@@ -159,6 +160,11 @@ export function PostView({ slug }: { slug: string }) {
               <AdSlot slot="inArticle" label="Advertisement" />
             </div>
           )}
+
+          {/* Featured digital products */}
+          <div className="my-10">
+            <ProductsWidget limit={2} title="From the Shop" />
+          </div>
 
           {/* Tags */}
           {tags.length > 0 && (

@@ -33,6 +33,7 @@ export function Header() {
     { label: 'Home', action: () => navigate({ name: 'home' }), active: route.name === 'home' },
     { label: 'Articles', action: () => navigate({ name: 'blog' }), active: route.name === 'blog' || route.name === 'search' },
     { label: 'About', action: () => navigate({ name: 'about' }), active: route.name === 'about' },
+    { label: 'Shop', action: () => navigate({ name: 'shop' }), active: route.name === 'shop' },
     { label: 'Contact', action: () => navigate({ name: 'contact' }), active: route.name === 'contact' },
   ]
 

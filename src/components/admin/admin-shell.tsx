@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import {
   LayoutDashboard, FileText, FolderTree, ImageIcon, MessageSquare,
   Settings, LogOut, X, ExternalLink, PenSquare, ChevronRight,
+  ShoppingBag, BookMarked,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
@@ -16,7 +17,9 @@ import { toast } from 'sonner'
 const NAV: { view: AdminView; label: string; icon: any }[] = [
   { view: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { view: 'posts', label: 'Articles', icon: FileText },
+  { view: 'products', label: 'Products', icon: ShoppingBag },
   { view: 'categories', label: 'Categories', icon: FolderTree },
+  { view: 'pages', label: 'Pages', icon: BookMarked },
   { view: 'media', label: 'Media', icon: ImageIcon },
   { view: 'comments', label: 'Comments', icon: MessageSquare },
   { view: 'settings', label: 'Settings', icon: Settings },
@@ -57,7 +60,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         </div>
         <nav className="flex-1 p-2 space-y-1">
           {NAV.map((item) => {
-            const active = adminView === item.view || (item.view === 'posts' && adminView === 'editor')
+            const active = adminView === item.view || (item.view === 'posts' && adminView === 'editor') || (item.view === 'products' && adminView === 'productEditor') || (item.view === 'pages' && adminView === 'pageEditor')
             return (
               <button
                 key={item.view}
@@ -107,6 +110,16 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                 <PenSquare className="h-4 w-4 mr-1.5" /> New
               </Button>
             )}
+            {adminView === 'products' && (
+              <Button size="sm" onClick={() => useApp.getState().editProduct(null)} className="ml-2">
+                <PenSquare className="h-4 w-4 mr-1.5" /> New
+              </Button>
+            )}
+            {adminView === 'pages' && (
+              <Button size="sm" onClick={() => useApp.getState().editPage(null)} className="ml-2">
+                <PenSquare className="h-4 w-4 mr-1.5" /> New
+              </Button>
+            )}
           </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={closeAdmin}>
@@ -119,7 +132,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         <div className="md:hidden border-b border-border bg-secondary/30 overflow-x-auto scroll-lumen">
           <div className="flex gap-1 p-2 min-w-max">
             {NAV.map((item) => {
-              const active = adminView === item.view || (item.view === 'posts' && adminView === 'editor')
+              const active = adminView === item.view || (item.view === 'posts' && adminView === 'editor') || (item.view === 'products' && adminView === 'productEditor') || (item.view === 'pages' && adminView === 'pageEditor')
               return (
                 <button
                   key={item.view}

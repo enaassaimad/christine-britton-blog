@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useApp } from '@/store/app-store'
 import { useSettings } from './settings-context'
 import { api } from '@/lib/api'
+import type { Page } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { toast } from 'sonner'
@@ -11,8 +12,17 @@ import { Twitter, Instagram, Facebook, Linkedin, Youtube, Mail, MapPin, Send, Sh
 
 export function Footer() {
   const { settings } = useSettings()
-  const { navigate, openCategory, openAdmin } = useApp()
+  const { navigate, openCategory, openAdmin, openPage } = useApp()
   const [email, setEmail] = useState('')
+  const [pages, setPages] = useState<Page[]>([])
+
+  useEffect(() => {
+    let active = true
+    api.pages.list().then(({ pages }) => {
+      if (active) setPages(pages.filter((p) => p.showInFooter).sort((a, b) => a.order - b.order))
+    }).catch(() => {})
+    return () => { active = false }
+  }, [])
 
   const onSubscribe = async () => {
     if (!email) return
@@ -62,19 +72,32 @@ export function Footer() {
           </div>
 
           {/* Explore */}
-          <div className="md:col-span-3">
+          <div className="md:col-span-2">
             <h4 className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-4">Explore</h4>
             <ul className="space-y-2.5 text-sm">
               <li><button className="hover:text-primary transition-colors" onClick={() => navigate({ name: 'home' })}>Home</button></li>
               <li><button className="hover:text-primary transition-colors" onClick={() => navigate({ name: 'blog' })}>All Articles</button></li>
               <li><button className="hover:text-primary transition-colors" onClick={() => navigate({ name: 'about' })}>About</button></li>
+              <li><button className="hover:text-primary transition-colors" onClick={() => navigate({ name: 'shop' })}>Shop</button></li>
               <li><button className="hover:text-primary transition-colors" onClick={() => navigate({ name: 'contact' })}>Contact</button></li>
               <li><button className="hover:text-primary transition-colors" onClick={() => openAdmin('login')}><span className="inline-flex items-center gap-1"><Shield className="h-3 w-3" />Admin</span></button></li>
             </ul>
           </div>
 
+          {/* Legal */}
+          {pages.length > 0 && (
+            <div className="md:col-span-2">
+              <h4 className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-4">Legal</h4>
+              <ul className="space-y-2.5 text-sm">
+                {pages.map((p) => (
+                  <li key={p.id}><button className="hover:text-primary transition-colors" onClick={() => openPage(p.slug)}>{p.title}</button></li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           {/* Newsletter mini */}
-          <div className="md:col-span-4">
+          <div className="md:col-span-3">
             <h4 className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-4">
               {settings?.newsletterTitle || 'The Sunday Letter'}
             </h4>

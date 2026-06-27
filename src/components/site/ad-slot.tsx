@@ -4,7 +4,7 @@ import { useSettings } from './settings-context'
 import { Megaphone } from 'lucide-react'
 
 interface AdSlotProps {
-  slot?: 'header' | 'inArticle' | 'sidebar' | 'footer'
+  slot?: 'header' | 'inArticle' | 'inContent' | 'sidebar' | 'footer'
   className?: string
   label?: string
   format?: 'horizontal' | 'rectangle' | 'vertical'
@@ -25,6 +25,8 @@ export function AdSlot({ slot = 'inArticle', className = '', label }: AdSlotProp
       ? settings.adsenseSlotSidebar
       : slot === 'footer'
       ? settings.adsenseSlotFooter
+      : slot === 'inContent'
+      ? settings.adsenseSlotInContent
       : settings.adsenseSlotInArticle
     : null
 

@@ -78,3 +78,32 @@ Stage Summary:
   3. WordPress-style editor: collapsible metaboxes (Publish, Category, Tags, Featured Image, Excerpt, Affiliate Links, SEO), radio-based publish action, Google snippet preview.
   4. Affiliate links: per-post JSON-stored links with title/URL/price/image/description, rendered publicly with FTC-style disclosure and rel="sponsored".
 - ESLint clean, 10 posts intact, dev server healthy.
+
+---
+Task ID: 24-33
+Agent: main (Z.ai Code)
+Task: Make design AdSense-friendly, add digital products/shop with sidebar offers, add all AdSense-required pages.
+
+Work Log:
+- Updated Prisma schema: added Page model (legal/custom pages with footer visibility + order) and DigitalProduct model (title, description, price, originalPrice, buyUrl, buyLabel, category, featured, coverImage, tags, order). Added adsenseSlotInContent field to SiteSetting. Pushed + regenerated Prisma client.
+- Built 6 API routes: /api/pages (list/create), /api/pages/[id] (update/delete), /api/pages/slug/[slug] (public read), /api/products (list/create), /api/products/[id] (get/update/delete), /api/products/slug/[slug] (public read with related products).
+- Created ads.txt in /public for AdSense verification (placeholder publisher ID, ready to replace).
+- Seeded 5 legal pages with full real content: Privacy Policy (information collection, cookies, third-party services incl. Google AdSense, affiliate disclosure, GDPR rights, children's privacy), Terms & Conditions (use of service, IP, digital products, comments, affiliate links, limitation of liability, governing law), Disclaimer (general info, art materials safety, affiliate disclosure, earnings disclaimer, external links), Cookie Policy (cookie types, specific cookies table, third-party cookies, managing/opting out), DMCA Policy (reporting infringement, counter-notification, repeat infringers, our content).
+- Seeded 5 digital products: The Complete Fluid Art Handbook ($19.99 ebook), Resin Art for Beginners Video Course ($34.99), Posca Art Pattern Pack ($9.99 printable), The Quantum Prescription ($12.99 book), Doodle Journal Starter Kit ($7.99 bundle). Generated 5 AI cover images.
+- Updated navigation store: added shop/product/page routes + openProduct/openPage actions; added editProduct/editPage admin actions + productEditor/pageEditor views.
+- Updated API client + types with Page, DigitalProduct, AffiliateLink types and pages/products methods.
+- Built public components: ShopView (hero + category filter + product grid + ad + newsletter), ProductView (breadcrumb + cover + buy box with price/originalPrice/checkout button + features + markdown description + ad + related products sidebar + CTA), PageView (legal page with header + markdown content), ProductsWidget (sidebar widget showing featured product offers — used on post pages).
+- Updated Header: added "Shop" nav item. Updated Footer: fetches pages from API, added "Legal" column with all legal page links (Privacy Policy, Terms, Disclaimer, Cookie Policy, DMCA), restructured grid to 5+2+2+3.
+- Updated AdSlot component: added 'inContent' slot type. Updated settings manager: added in-content slot ID field + 5-slot preview grid.
+- Built admin components: ProductsManager (search + list with cover/category/price/featured toggle + delete), ProductEditor (WP-style metaboxes: Pricing & Checkout, Cover Image with AI generator, Category & Tags), PagesManager (search + list with type badges + AdSense compliance tip banner + delete), PageEditor (title + slug + markdown editor with preview + type/excerpt/footer/order settings).
+- Updated admin shell: added Products + Pages to sidebar nav; added "New" buttons for both; updated active matching for productEditor/pageEditor views.
+- Updated admin-app: imported + rendered ProductsManager, ProductEditor, PagesManager, PageEditor.
+- Fixed lint: used active-ref pattern in all new useEffect hooks to satisfy set-state-in-effect rule; added missing Badge import.
+- Verified end-to-end with Agent Browser: Shop page renders all 5 products with category filter; product detail page shows buy button + description + related; footer shows all 5 legal links; Privacy Policy page renders full legal content; ads.txt returns HTTP 200; post pages show "From the Shop" products widget; admin Products manager lists all products; admin Pages manager lists all legal pages with AdSense tip banner.
+
+Stage Summary:
+- Three major features fully functional and browser-verified:
+  1. AdSense-friendly design: 5 ad slot positions (header, in-article, in-content, sidebar, footer), ads.txt file, clearly labeled placeholders, proper content-to-ad ratio, all required legal pages present and linked.
+  2. Digital products/shop: full CRUD admin (products manager + WP-style editor with AI image generation), public shop page with category filter, product detail pages with buy buttons, sidebar products widget on article pages, 5 seeded products with AI covers.
+  3. AdSense-required pages: Privacy Policy, Terms & Conditions, Disclaimer, Cookie Policy, DMCA Policy — all with comprehensive real content, editable via admin Pages manager, linked in footer.
+- ESLint clean, dev server healthy, all APIs return 200.

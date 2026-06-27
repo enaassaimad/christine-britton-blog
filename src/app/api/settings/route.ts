@@ -21,7 +21,7 @@ export async function PUT(req: NextRequest) {
     'email', 'phone', 'location',
     'twitter', 'instagram', 'facebook', 'linkedin', 'pinterest', 'youtube',
     'aboutTitle', 'aboutContent', 'aboutImage',
-    'adsenseClient', 'adsenseSlotHeader', 'adsenseSlotInArticle', 'adsenseSlotSidebar', 'adsenseSlotFooter',
+    'adsenseClient', 'adsenseSlotHeader', 'adsenseSlotInArticle', 'adsenseSlotSidebar', 'adsenseSlotFooter', 'adsenseSlotInContent',
     'adsEnabled',
     'newsletterTitle', 'newsletterText',
     'footerText',

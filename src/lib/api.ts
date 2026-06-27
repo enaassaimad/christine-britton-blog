@@ -1,5 +1,5 @@
 // Lightweight typed fetch helpers for the frontend
-import type { Post, Category, SiteSetting, User, Comment, Media } from './types'
+import type { Post, Category, SiteSetting, User, Comment, Media, Page, DigitalProduct } from './types'
 
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
   const res = await fetch(url, {
@@ -86,4 +86,23 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ prompt, size }),
     }),
+  pages: {
+    list: () => request<{ pages: Page[] }>('/api/pages'),
+    getBySlug: (slug: string) => request<{ page: Page }>(`/api/pages/slug/${slug}`),
+    create: (data: any) => request<{ page: Page }>('/api/pages', { method: 'POST', body: JSON.stringify(data) }),
+    update: (id: string, data: any) => request<{ page: Page }>(`/api/pages/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    remove: (id: string) => request<{ ok: boolean }>(`/api/pages/${id}`, { method: 'DELETE' }),
+  },
+  products: {
+    list: (params: Record<string, string | boolean | undefined> = {}) => {
+      const q = new URLSearchParams()
+      Object.entries(params).forEach(([k, v]) => { if (v !== undefined && v !== '') q.set(k, String(v)) })
+      return request<{ products: DigitalProduct[] }>(`/api/products?${q}`)
+    },
+    get: (id: string) => request<{ product: DigitalProduct }>(`/api/products/${id}`),
+    getBySlug: (slug: string) => request<{ product: DigitalProduct; related: DigitalProduct[] }>(`/api/products/slug/${slug}`),
+    create: (data: any) => request<{ product: DigitalProduct }>('/api/products', { method: 'POST', body: JSON.stringify(data) }),
+    update: (id: string, data: any) => request<{ product: DigitalProduct }>(`/api/products/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    remove: (id: string) => request<{ ok: boolean }>(`/api/products/${id}`, { method: 'DELETE' }),
+  },
 }

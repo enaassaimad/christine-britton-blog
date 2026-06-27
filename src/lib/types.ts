@@ -90,6 +90,7 @@ export interface SiteSetting {
   adsenseSlotInArticle?: string | null
   adsenseSlotSidebar?: string | null
   adsenseSlotFooter?: string | null
+  adsenseSlotInContent?: string | null
   adsEnabled: boolean
   newsletterTitle?: string | null
   newsletterText?: string | null
@@ -105,4 +106,37 @@ export interface Media {
   height?: number | null
   type: string
   createdAt: string
+}
+
+export interface Page {
+  id: string
+  title: string
+  slug: string
+  content: string
+  excerpt?: string | null
+  type: string
+  showInFooter: boolean
+  order: number
+  createdAt: string
+  updatedAt: string
+}
+
+export interface DigitalProduct {
+  id: string
+  title: string
+  slug: string
+  excerpt?: string | null
+  description: string
+  coverImage?: string | null
+  coverAlt?: string | null
+  price: string
+  originalPrice?: string | null
+  buyUrl: string
+  buyLabel: string
+  category?: string | null
+  featured: boolean
+  tags?: string | null
+  order: number
+  createdAt: string
+  updatedAt: string
 }

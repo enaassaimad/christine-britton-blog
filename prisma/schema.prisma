@@ -119,6 +119,7 @@ model SiteSetting {
   adsenseSlotInArticle String?
   adsenseSlotSidebar   String?
   adsenseSlotFooter    String?
+  adsenseSlotInContent String?
   adsEnabled      Boolean  @default(true)
   // Newsletter
   newsletterTitle String?
@@ -144,4 +145,37 @@ model Subscriber {
   email     String   @unique
   name      String?
   createdAt DateTime @default(now())
+}
+
+model Page {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String   @unique
+  content     String   // markdown
+  excerpt     String?
+  type        String   @default("LEGAL") // LEGAL | CUSTOM
+  showInFooter Boolean @default(true)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model DigitalProduct {
+  id            String   @id @default(cuid())
+  title         String
+  slug          String   @unique
+  excerpt       String?
+  description   String   // markdown
+  coverImage    String?
+  coverAlt      String?
+  price         String   // e.g. "$19.99" or "Free"
+  originalPrice String?  // for showing discounts
+  buyUrl        String   // external checkout (Gumroad, Stripe, etc.)
+  buyLabel      String   @default("Buy now")
+  category      String?  // ebook, course, template, bundle
+  featured      Boolean  @default(false)
+  tags          String?
+  order         Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }

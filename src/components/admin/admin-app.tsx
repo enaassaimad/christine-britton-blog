@@ -13,6 +13,10 @@ import { CategoriesManager } from './categories-manager'
 import { MediaManager } from './media-manager'
 import { CommentsManager } from './comments-manager'
 import { SettingsManager } from './settings-manager'
+import { ProductsManager } from './products-manager'
+import { ProductEditor } from './product-editor'
+import { PagesManager } from './pages-manager'
+import { PageEditor } from './page-editor'
 import { Loader2 } from 'lucide-react'
 
 export function AdminApp() {
@@ -47,6 +51,10 @@ export function AdminApp() {
       {adminView === 'media' && <MediaManager />}
       {adminView === 'comments' && <CommentsManager />}
       {adminView === 'settings' && <SettingsManager />}
+      {adminView === 'products' && <ProductsManager />}
+      {adminView === 'productEditor' && <ProductEditor productId={editingPostId} />}
+      {adminView === 'pages' && <PagesManager />}
+      {adminView === 'pageEditor' && <PageEditor pageId={editingPostId} />}
     </AdminShell>
   )
 }

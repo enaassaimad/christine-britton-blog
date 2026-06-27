@@ -1,0 +1,4 @@
+# ads.txt — Authorized Digital Sellers
+# Replace the placeholder publisher ID below with your real AdSense publisher ID (ca-pub-XXXXXXXXXXXXXXXX)
+# Format: google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0
+google.com, pub-0000000000000000, DIRECT, f08c47fec0942fa0
