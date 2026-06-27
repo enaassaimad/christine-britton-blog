@@ -94,64 +94,64 @@ export function PostView({ slug }: { slug: string }) {
 
   return (
     <div className="animate-fade-up">
-      <article className="mx-auto max-w-3xl px-6 pt-8 md:pt-12">
-        {/* Breadcrumb */}
-        <nav className="flex items-center gap-1.5 text-xs text-muted-foreground mb-6">
-          <button onClick={() => navigate({ name: 'home' })} className="hover:text-foreground">Home</button>
-          <ChevronRight className="h-3 w-3" />
-          <button onClick={() => openCategory(post.category.slug)} className="hover:text-foreground inline-flex items-center gap-1">
-            <CategoryIcon name={post.category.icon} className="h-3 w-3" style={{ color: post.category.color || undefined }} />
-            {post.category.name}
-          </button>
-        </nav>
-
-        {/* Header */}
-        <header>
-          <div className="flex items-center gap-3 mb-4">
-            <button
-              onClick={() => openCategory(post.category.slug)}
-              className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium uppercase tracking-wider text-primary bg-primary/10 hover:bg-primary/15"
-            >
-              <CategoryIcon name={post.category.icon} className="h-3 w-3" /> {post.category.name}
+      {/* Two-column layout: article + sticky sidebar */}
+      <div className="mx-auto max-w-7xl px-6 pt-8 md:pt-12 grid gap-10 lg:grid-cols-12">
+        {/* ===== ARTICLE (left column) ===== */}
+        <article className="lg:col-span-8 min-w-0">
+          {/* Breadcrumb */}
+          <nav className="flex items-center gap-1.5 text-xs text-muted-foreground mb-6">
+            <button onClick={() => navigate({ name: 'home' })} className="hover:text-foreground">Home</button>
+            <ChevronRight className="h-3 w-3" />
+            <button onClick={() => openCategory(post.category.slug)} className="hover:text-foreground inline-flex items-center gap-1">
+              <CategoryIcon name={post.category.icon} className="h-3 w-3" style={{ color: post.category.color || undefined }} />
+              {post.category.name}
             </button>
-          </div>
-          <h1 className="font-display text-3xl md:text-5xl font-semibold leading-[1.1] tracking-tight">
-            {post.title}
-          </h1>
-          <p className="mt-4 text-lg text-muted-foreground leading-relaxed">{post.excerpt}</p>
+          </nav>
 
-          {/* Meta */}
-          <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground border-y border-border/60 py-4">
-            <div className="flex items-center gap-2">
-              <div className="h-9 w-9 rounded-full bg-primary/15 flex items-center justify-center text-sm font-semibold text-primary">
-                {post.author.name.charAt(0)}
-              </div>
-              <div>
-                <p className="font-medium text-foreground leading-tight">{post.author.name}</p>
-                <p className="text-xs">{post.author.bio ? post.author.bio.slice(0, 48) + (post.author.bio.length > 48 ? '…' : '') : 'Editor'}</p>
-              </div>
+          {/* Header */}
+          <header>
+            <div className="flex items-center gap-3 mb-4">
+              <button
+                onClick={() => openCategory(post.category.slug)}
+                className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium uppercase tracking-wider text-primary bg-primary/10 hover:bg-primary/15"
+              >
+                <CategoryIcon name={post.category.icon} className="h-3 w-3" /> {post.category.name}
+              </button>
             </div>
-            <span className="hidden sm:inline">•</span>
-            <span>{formatShortDate(post.publishedAt || post.createdAt)}</span>
-            <span className="inline-flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {post.readMinutes} min read</span>
-            <span className="inline-flex items-center gap-1"><Eye className="h-3.5 w-3.5" /> {post.views.toLocaleString()}</span>
-          </div>
-        </header>
+            <h1 className="font-display text-3xl md:text-5xl font-semibold leading-[1.1] tracking-tight">
+              {post.title}
+            </h1>
+            <p className="mt-4 text-lg text-muted-foreground leading-relaxed">{post.excerpt}</p>
 
-        {/* Cover */}
-        {post.coverImage && (
-          <figure className="mt-8 -mx-6 md:mx-0">
-            <div className="relative aspect-[16/9] overflow-hidden bg-muted md:rounded-2xl">
-              <img src={post.coverImage} alt={post.coverAlt || post.title} className="h-full w-full object-cover" />
+            {/* Meta */}
+            <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground border-y border-border/60 py-4">
+              <div className="flex items-center gap-2">
+                <div className="h-9 w-9 rounded-full bg-primary/15 flex items-center justify-center text-sm font-semibold text-primary">
+                  {post.author.name.charAt(0)}
+                </div>
+                <div>
+                  <p className="font-medium text-foreground leading-tight">{post.author.name}</p>
+                  <p className="text-xs">{post.author.bio ? post.author.bio.slice(0, 48) + (post.author.bio.length > 48 ? '…' : '') : 'Editor'}</p>
+                </div>
+              </div>
+              <span className="hidden sm:inline">•</span>
+              <span>{formatShortDate(post.publishedAt || post.createdAt)}</span>
+              <span className="inline-flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {post.readMinutes} min read</span>
+              <span className="inline-flex items-center gap-1"><Eye className="h-3.5 w-3.5" /> {post.views.toLocaleString()}</span>
             </div>
-            {post.coverAlt && <figcaption className="mt-2 text-xs text-muted-foreground text-center md:text-left">{post.coverAlt}</figcaption>}
-          </figure>
-        )}
-      </article>
+          </header>
 
-      {/* Body + sidebar */}
-      <div className="mx-auto max-w-6xl px-6 mt-10 grid gap-10 lg:grid-cols-12">
-        <div className="lg:col-span-8 lg:col-start-3">
+          {/* Cover */}
+          {post.coverImage && (
+            <figure className="mt-8">
+              <div className="relative aspect-[16/9] overflow-hidden bg-muted rounded-2xl">
+                <img src={post.coverImage} alt={post.coverAlt || post.title} className="h-full w-full object-cover" />
+              </div>
+              {post.coverAlt && <figcaption className="mt-2 text-xs text-muted-foreground">{post.coverAlt}</figcaption>}
+            </figure>
+          )}
+
+          {/* Content */}
           <Markdown content={post.content} />
 
           {/* In-article ad */}
@@ -160,11 +160,6 @@ export function PostView({ slug }: { slug: string }) {
               <AdSlot slot="inArticle" label="Advertisement" />
             </div>
           )}
-
-          {/* Featured digital products */}
-          <div className="my-10">
-            <ProductsWidget limit={2} title="From the Shop" />
-          </div>
 
           {/* Tags */}
           {tags.length > 0 && (
@@ -298,7 +293,18 @@ export function PostView({ slug }: { slug: string }) {
               )}
             </div>
           </section>
-        </div>
+        </article>
+
+        {/* ===== SIDEBAR (right column, sticky) ===== */}
+        <aside className="lg:col-span-4">
+          <div className="sticky top-24 space-y-6">
+            {/* Digital product offers */}
+            <ProductsWidget variant="sidebar" limit={2} title="From the Shop" />
+
+            {/* Sidebar ad */}
+            {post.showAds && <AdSlot slot="sidebar" label="Advertisement" />}
+          </div>
+        </aside>
       </div>
 
       {/* Related */}
