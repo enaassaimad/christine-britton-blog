@@ -29,7 +29,7 @@ export function AboutView() {
     <div className="animate-fade-up">
       {/* Hero */}
       <section className="border-b border-border bg-secondary/30">
-        <div className="mx-auto max-w-4xl px-6 py-16 md:py-24 text-center">
+        <div className="mx-auto max-w-4xl px-4 sm:px-6 py-16 md:py-24 text-center">
           <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-4">About the journal</p>
           <h1 className="font-display text-4xl md:text-6xl font-semibold tracking-tight leading-[1.05]">
             {settings?.aboutTitle || 'About Lumen Journal'}
@@ -41,7 +41,7 @@ export function AboutView() {
       </section>
 
       {/* Story + image */}
-      <section className="mx-auto max-w-7xl px-6 py-16 md:py-20">
+      <section className="mx-auto max-w-7xl px-4 sm:px-6 py-16 md:py-20">
         <div className="grid gap-10 lg:grid-cols-2 items-center">
           <div className="relative">
             {settings?.aboutImage && (
@@ -80,7 +80,7 @@ export function AboutView() {
 
       {/* Stats */}
       <section className="border-y border-border bg-secondary/30">
-        <div className="mx-auto max-w-7xl px-6 py-12 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-12 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
           {stats.map((s) => (
             <div key={s.label}>
               <p className="font-display text-4xl md:text-5xl font-semibold text-primary">{s.value}</p>
@@ -91,7 +91,7 @@ export function AboutView() {
       </section>
 
       {/* Values */}
-      <section className="mx-auto max-w-7xl px-6 py-16">
+      <section className="mx-auto max-w-7xl px-4 sm:px-6 py-16">
         <h2 className="font-display text-3xl font-semibold tracking-tight text-center">What we believe</h2>
         <div className="mt-10 grid gap-6 md:grid-cols-3">
           {[
@@ -108,12 +108,12 @@ export function AboutView() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-3xl px-6">
+      <section className="mx-auto max-w-3xl px-4 sm:px-6">
         <AdSlot slot="inArticle" label="Advertisement" />
       </section>
 
       {/* CTA */}
-      <section className="mx-auto max-w-7xl px-6 py-16 text-center">
+      <section className="mx-auto max-w-7xl px-4 sm:px-6 py-16 text-center">
         <h2 className="font-display text-3xl md:text-4xl font-semibold tracking-tight">Want to say hello?</h2>
         <p className="mt-3 text-muted-foreground">We read every email. Pitch us a story, or just tell us what you are reading.</p>
         <div className="mt-6 flex flex-wrap justify-center gap-3">

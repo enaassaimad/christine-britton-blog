@@ -35,7 +35,7 @@ export function ContactView() {
   ].filter((s) => s.handle)
 
   return (
-    <div className="animate-fade-up mx-auto max-w-7xl px-6 py-14 md:py-20">
+    <div className="animate-fade-up mx-auto max-w-7xl px-4 sm:px-6 py-10 md:py-20">
       <div className="grid gap-12 lg:grid-cols-2">
         {/* Info */}
         <div>

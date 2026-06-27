@@ -118,12 +118,43 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "ss01", "cv01";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+  /* Prevent iOS zoom on input focus */
+  input, textarea, select {
+    font-size: 16px;
+  }
+  @media (min-width: 768px) {
+    input, textarea, select {
+      font-size: inherit;
+    }
   }
   ::selection {
     background: oklch(0.55 0.13 55 / 0.2);
+  }
+  /* Responsive type scale — fluid typography */
+  h1 { font-size: clamp(1.875rem, 5vw + 1rem, 3rem); }
+  h2 { font-size: clamp(1.5rem, 3vw + 0.75rem, 2.25rem); }
+  h3 { font-size: clamp(1.25rem, 2vw + 0.5rem, 1.5rem); }
+  /* Better link defaults */
+  a {
+    -webkit-tap-highlight-color: transparent;
+  }
+  /* Improve tap targets on mobile */
+  @media (max-width: 768px) {
+    button, a {
+      touch-action: manipulation;
+    }
   }
 }
 
@@ -145,16 +176,22 @@
 
 /* Article prose styling for rendered markdown */
 .article-prose {
-  font-size: 1.125rem;
-  line-height: 1.85;
+  font-size: 1.0625rem;
+  line-height: 1.8;
   color: oklch(0.28 0.015 50);
+}
+@media (min-width: 768px) {
+  .article-prose {
+    font-size: 1.125rem;
+    line-height: 1.85;
+  }
 }
 .article-prose > * + * {
   margin-top: 1.5rem;
 }
 .article-prose h2 {
   font-family: var(--font-serif);
-  font-size: 1.9rem;
+  font-size: clamp(1.5rem, 3vw + 0.75rem, 1.9rem);
   line-height: 1.25;
   font-weight: 600;
   margin-top: 2.75rem;
@@ -164,7 +201,7 @@
 }
 .article-prose h3 {
   font-family: var(--font-serif);
-  font-size: 1.4rem;
+  font-size: clamp(1.2rem, 2vw + 0.5rem, 1.4rem);
   font-weight: 600;
   margin-top: 2rem;
   color: oklch(0.22 0.02 50);
@@ -202,7 +239,7 @@
   padding-left: 1.25rem;
   font-family: var(--font-serif);
   font-style: italic;
-  font-size: 1.3rem;
+  font-size: clamp(1.1rem, 1.5vw + 0.5rem, 1.3rem);
   line-height: 1.6;
   color: oklch(0.35 0.02 50);
   margin: 2rem 0;
@@ -217,6 +254,7 @@
 .article-prose img {
   border-radius: 0.5rem;
   width: 100%;
+  height: auto;
 }
 .article-prose code {
   background: oklch(0.93 0.02 65);
@@ -224,6 +262,7 @@
   border-radius: 0.3rem;
   font-size: 0.9em;
   font-family: var(--font-mono);
+  word-break: break-word;
 }
 
 /* Display headline serif */

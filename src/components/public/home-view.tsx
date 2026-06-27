@@ -42,7 +42,7 @@ export function HomeView() {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-7xl px-6 py-20">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-20">
         <div className="h-80 animate-pulse rounded-2xl bg-muted" />
         <div className="mt-8 grid gap-6 md:grid-cols-3">
           {[0, 1, 2].map((i) => <div key={i} className="h-64 animate-pulse rounded-2xl bg-muted" />)}
@@ -57,7 +57,7 @@ export function HomeView() {
   return (
     <div className="animate-fade-up">
       {/* Hero */}
-      <section className="mx-auto max-w-7xl px-6 pt-8 md:pt-12">
+      <section className="mx-auto max-w-7xl px-4 sm:px-6 pt-8 md:pt-12">
         <div className="grid gap-6 lg:grid-cols-12">
           {hero && (
             <div className="lg:col-span-8">
@@ -78,13 +78,13 @@ export function HomeView() {
       </section>
 
       {/* Header ad */}
-      <section className="mx-auto max-w-7xl px-6 mt-10">
+      <section className="mx-auto max-w-7xl px-4 sm:px-6 mt-10">
         <AdSlot slot="header" label="Sponsored" />
       </section>
 
       {/* Trending ticker */}
       {trending.length > 0 && (
-        <section className="mx-auto max-w-7xl px-6 mt-12">
+        <section className="mx-auto max-w-7xl px-4 sm:px-6 mt-12">
           <div className="flex items-center gap-3 mb-5">
             <Flame className="h-5 w-5 text-primary" />
             <h2 className="font-display text-xl font-semibold">Trending now</h2>
@@ -98,7 +98,7 @@ export function HomeView() {
       )}
 
       {/* Categories showcase */}
-      <section className="mx-auto max-w-7xl px-6 mt-16">
+      <section className="mx-auto max-w-7xl px-4 sm:px-6 mt-10 md:mt-16">
         <div className="flex items-end justify-between mb-6">
           <div>
             <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-1">Browse by</p>
@@ -136,7 +136,7 @@ export function HomeView() {
 
       {/* Editor's pick + sidebar ad */}
       {editorsPick && (
-        <section className="mx-auto max-w-7xl px-6 mt-16">
+        <section className="mx-auto max-w-7xl px-4 sm:px-6 mt-10 md:mt-16">
           <div className="grid gap-8 lg:grid-cols-12">
             <div className="lg:col-span-8">
               <div className="flex items-center gap-3 mb-5">
@@ -183,7 +183,7 @@ export function HomeView() {
 
       {/* Latest grid */}
       {latest.length > 0 && (
-        <section className="mx-auto max-w-7xl px-6 mt-16">
+        <section className="mx-auto max-w-7xl px-4 sm:px-6 mt-10 md:mt-16">
           <div className="flex items-end justify-between mb-6">
             <div>
               <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-1">Fresh ink</p>
@@ -202,7 +202,7 @@ export function HomeView() {
       )}
 
       {/* In-article ad */}
-      <section className="mx-auto max-w-3xl px-6 mt-16">
+      <section className="mx-auto max-w-3xl px-4 sm:px-6 mt-10 md:mt-16">
         <AdSlot slot="inArticle" label="Advertisement" />
       </section>
 

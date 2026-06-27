@@ -107,3 +107,27 @@ Stage Summary:
   2. Digital products/shop: full CRUD admin (products manager + WP-style editor with AI image generation), public shop page with category filter, product detail pages with buy buttons, sidebar products widget on article pages, 5 seeded products with AI covers.
   3. AdSense-required pages: Privacy Policy, Terms & Conditions, Disclaimer, Cookie Policy, DMCA Policy — all with comprehensive real content, editable via admin Pages manager, linked in footer.
 - ESLint clean, dev server healthy, all APIs return 200.
+
+---
+Task ID: 40-49
+Agent: main (Z.ai Code)
+Task: Make design more professional and mobile-friendly/responsive.
+
+Work Log:
+- Audited all pages on mobile (390px) and desktop (1440px) viewports using Agent Browser — confirmed no horizontal overflow, proper stacking.
+- Added responsive fluid typography scale to globals.css: h1/h2/h3 now use clamp() to scale smoothly from mobile to desktop (e.g. h1: 1.875rem → 3rem).
+- Added mobile UX best practices to globals.css: 16px input font-size to prevent iOS zoom, -webkit-tap-highlight-color: transparent, touch-action: manipulation, antialiased font rendering, overflow-x: hidden, smooth scroll.
+- Made article-prose responsive: smaller font on mobile (1.0625rem → 1.125rem on desktop), fluid heading sizes with clamp(), responsive blockquote sizing, word-break on code blocks.
+- Added mobile category bar to header: horizontal-scrolling category strip visible only on mobile (md:hidden), complementing the desktop category bar.
+- Made all public view padding responsive: changed px-6 to px-4 sm:px-6 across home, post, shop, product, category, blog, about, contact, page, and newsletter views for better mobile spacing.
+- Made grid gaps responsive: changed gap-10 to gap-8 lg:gap-10 in two-column layouts (post view, product view) for tighter mobile spacing.
+- Reduced section margins on mobile: mt-16 → mt-10 md:mt-16, mt-10 → mt-8 md:mt-10 in home view.
+- Optimized newsletter section: reduced internal padding on mobile (px-6 py-10 → md:px-16 md:py-16).
+- Optimized footer: reduced padding on mobile (py-10 → md:py-16), responsive gap (gap-8 → md:gap-10), responsive horizontal padding (px-4 sm:px-6).
+- Verified end-to-end: mobile home (390px, no scroll, mobile category bar visible), mobile article (single column, sidebar stacks below), mobile shop/product (single column grids), mobile footer (4 children stack vertically), desktop home (12-col hero grid, no scroll), desktop article (two-column with 808px article + 384px sidebar side-by-side).
+
+Stage Summary:
+- All pages now fully responsive: mobile (390px), tablet (768px), desktop (1440px).
+- Professional typography: fluid type scale, antialiased rendering, proper line heights.
+- Mobile UX: 16px inputs (no iOS zoom), touch-action manipulation, no horizontal scroll, horizontal-scrolling category bar, proper stacking of all grids and sidebars.
+- No console/runtime errors, ESLint clean.

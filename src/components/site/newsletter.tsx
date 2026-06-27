@@ -26,8 +26,8 @@ export function Newsletter() {
   }
 
   return (
-    <section className="mx-auto max-w-7xl px-6 py-16 md:py-20">
-      <div className="relative overflow-hidden rounded-3xl bg-foreground text-background px-8 py-12 md:px-16 md:py-16">
+    <section className="mx-auto max-w-7xl px-4 sm:px-6 py-16 md:py-20">
+      <div className="relative overflow-hidden rounded-3xl bg-foreground text-background px-6 py-10 md:px-16 md:py-16">
         <div className="absolute -right-12 -top-12 h-48 w-48 rounded-full bg-primary/30 blur-3xl" />
         <div className="absolute -left-12 -bottom-12 h-48 w-48 rounded-full bg-primary/20 blur-3xl" />
         <div className="relative grid gap-8 md:grid-cols-2 items-center">

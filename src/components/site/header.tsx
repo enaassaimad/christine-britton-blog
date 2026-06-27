@@ -144,7 +144,7 @@ export function Header() {
           </div>
         </div>
 
-        {/* Category strip */}
+        {/* Category strip — desktop */}
         <div className="border-t border-border/40 hidden md:block">
           <div className="mx-auto max-w-7xl px-6">
             <div className="flex items-center gap-6 h-10 overflow-x-auto scroll-lumen">
@@ -165,6 +165,28 @@ export function Header() {
                 )
               })}
             </div>
+          </div>
+        </div>
+
+        {/* Category strip — mobile (horizontal scroll) */}
+        <div className="md:hidden border-t border-border/40 bg-background/85 backdrop-blur-md">
+          <div className="flex items-center gap-4 h-10 overflow-x-auto scroll-lumen px-4">
+            {categories.map((c) => {
+              const active = route.name === 'category' && route.slug === c.slug
+              return (
+                <button
+                  key={c.id}
+                  onClick={() => useApp.getState().openCategory(c.slug)}
+                  className={cn(
+                    'inline-flex items-center gap-1 whitespace-nowrap text-[11px] uppercase tracking-wider transition-colors',
+                    active ? 'text-primary font-medium' : 'text-muted-foreground'
+                  )}
+                >
+                  <CategoryIcon name={c.icon} className="h-3 w-3" style={{ color: c.color || undefined }} />
+                  {c.name}
+                </button>
+              )
+            })}
           </div>
         </div>
       </div>

@@ -45,8 +45,8 @@ export function Footer() {
 
   return (
     <footer className="mt-auto border-t border-border bg-secondary/30">
-      <div className="mx-auto max-w-7xl px-6 py-12 md:py-16">
-        <div className="grid gap-10 md:grid-cols-12">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-10 md:py-16">
+        <div className="grid gap-8 md:gap-10 md:grid-cols-12">
           {/* Brand */}
           <div className="md:col-span-5">
             <button onClick={() => navigate({ name: 'home' })} className="font-display text-2xl font-semibold tracking-tight">

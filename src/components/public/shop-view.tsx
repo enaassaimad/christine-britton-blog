@@ -30,7 +30,7 @@ export function ShopView() {
     <div className="animate-fade-up">
       {/* Hero */}
       <section className="border-b border-border bg-secondary/30">
-        <div className="mx-auto max-w-7xl px-6 py-14 md:py-20 text-center">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-14 md:py-20 text-center">
           <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs uppercase tracking-wider text-primary mb-4">
             <BookOpen className="h-3 w-3" /> Digital Shop
           </div>
@@ -42,7 +42,7 @@ export function ShopView() {
       </section>
 
       {/* Filter */}
-      <div className="mx-auto max-w-7xl px-6 pt-10">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 pt-10">
         <div className="flex flex-wrap gap-2 justify-center">
           {categories.map((c) => (
             <button
@@ -57,7 +57,7 @@ export function ShopView() {
       </div>
 
       {/* Grid */}
-      <section className="mx-auto max-w-7xl px-6 py-12">
+      <section className="mx-auto max-w-7xl px-4 sm:px-6 py-12">
         {loading ? (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">{[0, 1, 2].map((i) => <div key={i} className="h-96 animate-pulse rounded-2xl bg-muted" />)}</div>
         ) : filtered.length === 0 ? (
@@ -98,7 +98,7 @@ export function ShopView() {
       </section>
 
       {/* Ad */}
-      <section className="mx-auto max-w-3xl px-6 mb-16">
+      <section className="mx-auto max-w-3xl px-4 sm:px-6 mb-16">
         <AdSlot slot="inArticle" label="Advertisement" />
       </section>
 

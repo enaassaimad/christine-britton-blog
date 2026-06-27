@@ -22,12 +22,12 @@ export function PageView({ slug }: { slug: string }) {
   }, [slug])
 
   if (loading) {
-    return <div className="mx-auto max-w-3xl px-6 py-20"><div className="h-40 animate-pulse rounded bg-muted mb-6" /><div className="h-6 animate-pulse rounded bg-muted mb-3" /><div className="h-6 animate-pulse rounded bg-muted w-3/4" /></div>
+    return <div className="mx-auto max-w-3xl px-4 sm:px-6 py-20"><div className="h-40 animate-pulse rounded bg-muted mb-6" /><div className="h-6 animate-pulse rounded bg-muted mb-3" /><div className="h-6 animate-pulse rounded bg-muted w-3/4" /></div>
   }
 
   if (!page) {
     return (
-      <div className="mx-auto max-w-3xl px-6 py-32 text-center">
+      <div className="mx-auto max-w-3xl px-4 sm:px-6 py-32 text-center">
         <FileText className="h-10 w-10 mx-auto text-muted-foreground/40 mb-4" />
         <p className="font-display text-3xl font-semibold">Page not found</p>
         <Button className="mt-6" onClick={() => navigate({ name: 'home' })}>Back home</Button>
@@ -39,7 +39,7 @@ export function PageView({ slug }: { slug: string }) {
     <div className="animate-fade-up">
       {/* Header */}
       <section className="border-b border-border bg-secondary/30">
-        <div className="mx-auto max-w-3xl px-6 py-12 md:py-16">
+        <div className="mx-auto max-w-3xl px-4 sm:px-6 py-12 md:py-16">
           <nav className="flex items-center gap-1.5 text-xs text-muted-foreground mb-4">
             <button onClick={() => navigate({ name: 'home' })} className="hover:text-foreground">Home</button>
             <ChevronRight className="h-3 w-3" />
@@ -51,7 +51,7 @@ export function PageView({ slug }: { slug: string }) {
       </section>
 
       {/* Content */}
-      <article className="mx-auto max-w-3xl px-6 py-12 md:py-16">
+      <article className="mx-auto max-w-3xl px-4 sm:px-6 py-12 md:py-16">
         <Markdown content={page.content} />
       </article>
     </div>

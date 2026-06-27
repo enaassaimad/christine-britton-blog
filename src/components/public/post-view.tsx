@@ -72,7 +72,7 @@ export function PostView({ slug }: { slug: string }) {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-3xl px-6 py-20">
+      <div className="mx-auto max-w-3xl px-4 sm:px-6 py-20">
         <div className="h-6 w-32 animate-pulse rounded bg-muted mb-6" />
         <div className="h-12 w-3/4 animate-pulse rounded bg-muted mb-4" />
         <div className="h-80 animate-pulse rounded-2xl bg-muted" />
@@ -82,7 +82,7 @@ export function PostView({ slug }: { slug: string }) {
 
   if (!post) {
     return (
-      <div className="mx-auto max-w-3xl px-6 py-32 text-center">
+      <div className="mx-auto max-w-3xl px-4 sm:px-6 py-32 text-center">
         <p className="font-display text-3xl font-semibold">Article not found</p>
         <p className="mt-2 text-muted-foreground">It may have been moved or unpublished.</p>
         <Button className="mt-6" onClick={() => navigate({ name: 'home' })}>Back home</Button>
@@ -95,7 +95,7 @@ export function PostView({ slug }: { slug: string }) {
   return (
     <div className="animate-fade-up">
       {/* Two-column layout: article + sticky sidebar */}
-      <div className="mx-auto max-w-7xl px-6 pt-8 md:pt-12 grid gap-10 lg:grid-cols-12">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 pt-8 md:pt-12 grid gap-8 lg:gap-10 lg:grid-cols-12">
         {/* ===== ARTICLE (left column) ===== */}
         <article className="lg:col-span-8 min-w-0">
           {/* Breadcrumb */}
@@ -309,7 +309,7 @@ export function PostView({ slug }: { slug: string }) {
 
       {/* Related */}
       {related.length > 0 && (
-        <section className="mx-auto max-w-7xl px-6 mt-20">
+        <section className="mx-auto max-w-7xl px-4 sm:px-6 mt-20">
           <div className="flex items-center justify-between mb-6">
             <h2 className="font-display text-2xl md:text-3xl font-semibold tracking-tight">Keep reading</h2>
             <Button variant="ghost" onClick={() => openCategory(post.category.slug)}>More in {post.category.name} <ChevronRight className="ml-1 h-4 w-4" /></Button>
@@ -324,7 +324,7 @@ export function PostView({ slug }: { slug: string }) {
 
       {/* Footer ad */}
       {post.showAds && (
-        <section className="mx-auto max-w-3xl px-6 mt-16">
+        <section className="mx-auto max-w-3xl px-4 sm:px-6 mt-16">
           <AdSlot slot="footer" label="Advertisement" />
         </section>
       )}

@@ -48,7 +48,7 @@ export function CategoryView({ slug }: { slug: string }) {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-7xl px-6 py-20">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-20">
         <div className="h-64 animate-pulse rounded-2xl bg-muted" />
       </div>
     )
@@ -56,7 +56,7 @@ export function CategoryView({ slug }: { slug: string }) {
 
   if (!category) {
     return (
-      <div className="mx-auto max-w-3xl px-6 py-32 text-center">
+      <div className="mx-auto max-w-3xl px-4 sm:px-6 py-32 text-center">
         <p className="font-display text-3xl font-semibold">Category not found</p>
         <button onClick={() => navigate({ name: 'home' })} className="mt-4 text-primary underline">Back home</button>
       </div>
@@ -70,7 +70,7 @@ export function CategoryView({ slug }: { slug: string }) {
         className="border-b border-border"
         style={{ background: `linear-gradient(180deg, ${category.color}14, transparent)` }}
       >
-        <div className="mx-auto max-w-7xl px-6 py-14 md:py-20">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-14 md:py-20">
           <div
             className="flex h-16 w-16 items-center justify-center rounded-2xl mb-6"
             style={{ backgroundColor: `${category.color}1a`, color: category.color || '#b45309' }}
@@ -84,7 +84,7 @@ export function CategoryView({ slug }: { slug: string }) {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-6 py-12">
+      <section className="mx-auto max-w-7xl px-4 sm:px-6 py-12">
         {posts.length === 0 ? (
           <div className="py-20 text-center">
             <p className="font-display text-2xl font-semibold">No articles yet</p>
@@ -111,7 +111,7 @@ export function CategoryView({ slug }: { slug: string }) {
         )}
       </section>
 
-      <section className="mx-auto max-w-3xl px-6 mb-16">
+      <section className="mx-auto max-w-3xl px-4 sm:px-6 mb-16">
         <AdSlot slot="inArticle" label="Advertisement" />
       </section>
     </div>

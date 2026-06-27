@@ -60,7 +60,7 @@ export function BlogView({ initialQuery }: { initialQuery?: string }) {
   })
 
   return (
-    <div className="animate-fade-up mx-auto max-w-7xl px-6 py-10 md:py-14">
+    <div className="animate-fade-up mx-auto max-w-7xl px-4 sm:px-6 py-8 md:py-14">
       <header className="mb-10">
         <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">The Archive</p>
         <h1 className="font-display text-4xl md:text-5xl font-semibold tracking-tight">

@@ -27,12 +27,12 @@ export function ProductView({ slug }: { slug: string }) {
   }, [slug])
 
   if (loading) {
-    return <div className="mx-auto max-w-5xl px-6 py-20"><div className="h-80 animate-pulse rounded-2xl bg-muted" /></div>
+    return <div className="mx-auto max-w-5xl px-4 sm:px-6 py-20"><div className="h-80 animate-pulse rounded-2xl bg-muted" /></div>
   }
 
   if (!product) {
     return (
-      <div className="mx-auto max-w-3xl px-6 py-32 text-center">
+      <div className="mx-auto max-w-3xl px-4 sm:px-6 py-32 text-center">
         <p className="font-display text-3xl font-semibold">Product not found</p>
         <Button className="mt-6" onClick={() => navigate({ name: 'shop' })}>Back to shop</Button>
       </div>
@@ -48,7 +48,7 @@ export function ProductView({ slug }: { slug: string }) {
   return (
     <div className="animate-fade-up">
       {/* Breadcrumb */}
-      <nav className="mx-auto max-w-7xl px-6 pt-6 flex items-center gap-1.5 text-xs text-muted-foreground">
+      <nav className="mx-auto max-w-7xl px-4 sm:px-6 pt-6 flex items-center gap-1.5 text-xs text-muted-foreground">
         <button onClick={() => navigate({ name: 'home' })} className="hover:text-foreground">Home</button>
         <ChevronRight className="h-3 w-3" />
         <button onClick={() => navigate({ name: 'shop' })} className="hover:text-foreground">Shop</button>
@@ -56,7 +56,7 @@ export function ProductView({ slug }: { slug: string }) {
         <span className="text-foreground truncate">{product.title}</span>
       </nav>
 
-      <div className="mx-auto max-w-7xl px-6 py-10 grid gap-10 lg:grid-cols-12">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 py-10 grid gap-8 lg:gap-10 lg:grid-cols-12">
         {/* Main */}
         <div className="lg:col-span-8">
           {/* Cover + buy box — book hero layout */}
