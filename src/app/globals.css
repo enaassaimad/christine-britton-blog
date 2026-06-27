@@ -263,3 +263,43 @@
 .animate-fade-up {
   animation: fade-up 0.6s ease-out both;
 }
+
+/* Realistic book cover — portrait with spine shadow and page-edge effect */
+.book-cover {
+  position: relative;
+  box-shadow:
+    0 1px 1px rgba(0,0,0,0.08),
+    0 10px 30px -10px rgba(0,0,0,0.35),
+    -6px 0 12px -4px rgba(0,0,0,0.15);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease;
+}
+.book-cover::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 8px;
+  background: linear-gradient(90deg, rgba(0,0,0,0.25), rgba(0,0,0,0.05) 60%, transparent);
+  border-radius: 2px 0 0 2px;
+  pointer-events: none;
+  z-index: 2;
+}
+.book-cover::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12));
+  pointer-events: none;
+  z-index: 2;
+}
+.book-cover:hover {
+  transform: translateY(-4px) rotateY(-2deg);
+  box-shadow:
+    0 1px 1px rgba(0,0,0,0.08),
+    0 20px 50px -10px rgba(0,0,0,0.4),
+    -8px 0 16px -4px rgba(0,0,0,0.2);
+}

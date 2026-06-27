@@ -59,21 +59,27 @@ export function ProductView({ slug }: { slug: string }) {
       <div className="mx-auto max-w-7xl px-6 py-10 grid gap-10 lg:grid-cols-12">
         {/* Main */}
         <div className="lg:col-span-8">
-          {/* Cover + buy box */}
+          {/* Cover + buy box — book hero layout */}
           <div className="grid gap-8 md:grid-cols-2 items-start">
-            <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-muted shadow-lg">
-              {product.coverImage ? (
-                <img src={product.coverImage} alt={product.coverAlt || product.title} className="h-full w-full object-cover" />
-              ) : (
-                <div className="h-full w-full flex items-center justify-center text-muted-foreground/40"><BookOpen className="h-12 w-12" /></div>
-              )}
-              {product.featured && (
-                <span className="absolute left-4 top-4 inline-flex items-center gap-1 rounded-full bg-foreground text-background px-3 py-1 text-xs font-medium uppercase tracking-wider">
-                  Featured
-                </span>
-              )}
+            {/* Book cover with realistic shadow */}
+            <div className="flex justify-center md:justify-start">
+              <div className="relative" style={{ maxWidth: '320px', width: '100%' }}>
+                <div className="book-cover relative aspect-[2/3] overflow-hidden rounded-md bg-muted">
+                  {product.coverImage ? (
+                    <img src={product.coverImage} alt={product.coverAlt || product.title} className="h-full w-full object-cover" />
+                  ) : (
+                    <div className="h-full w-full flex items-center justify-center text-muted-foreground/40"><BookOpen className="h-12 w-12" /></div>
+                  )}
+                  {product.featured && (
+                    <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-foreground text-background px-3 py-1 text-xs font-medium uppercase tracking-wider z-10">
+                      Featured
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
 
+            {/* Buy box */}
             <div>
               {product.category && <Badge variant="secondary" className="mb-3 capitalize">{product.category}</Badge>}
               <h1 className="font-display text-3xl md:text-4xl font-semibold leading-tight tracking-tight">{product.title}</h1>
@@ -134,10 +140,10 @@ export function ProductView({ slug }: { slug: string }) {
           {related.length > 0 && (
             <div className="rounded-2xl border border-border bg-card p-5">
               <h3 className="font-display text-lg font-semibold mb-4">You might also like</h3>
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {related.map((r) => (
                   <button key={r.id} onClick={() => openProduct(r.slug)} className="flex gap-3 text-left w-full group">
-                    <div className="h-16 w-12 shrink-0 overflow-hidden rounded-md bg-muted">
+                    <div className="h-20 w-14 shrink-0 overflow-hidden rounded-md bg-muted shadow-md">
                       {r.coverImage && <img src={r.coverImage} alt={r.coverAlt || r.title} className="h-full w-full object-cover" />}
                     </div>
                     <div className="min-w-0 flex-1">
