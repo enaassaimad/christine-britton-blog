@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { PenSquare, Trash2, Search, MoreVertical, Eye, Loader2, Plus, FileText } from 'lucide-react'
+import { PenSquare, Trash2, Search, MoreVertical, Eye, Loader2, Plus, FileText, Clock } from 'lucide-react'
 import { formatShortDate } from '@/lib/helpers'
 import { toast } from 'sonner'
 import {
@@ -75,6 +75,7 @@ export function PostsManager() {
           <SelectContent>
             <SelectItem value="ALL">All statuses</SelectItem>
             <SelectItem value="PUBLISHED">Published</SelectItem>
+            <SelectItem value="SCHEDULED">Scheduled</SelectItem>
             <SelectItem value="DRAFT">Drafts</SelectItem>
           </SelectContent>
         </Select>
@@ -112,7 +113,13 @@ export function PostsManager() {
                   <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
                     <span>{p.category.name}</span>
                     <span>•</span>
-                    <span>{formatShortDate(p.publishedAt || p.createdAt)}</span>
+                    {p.status === 'SCHEDULED' && p.publishedAt ? (
+                      <span className="inline-flex items-center gap-1 text-amber-600">
+                        <Clock className="h-3 w-3" /> {new Date(p.publishedAt).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
+                      </span>
+                    ) : (
+                      <span>{formatShortDate(p.publishedAt || p.createdAt)}</span>
+                    )}
                     <span>•</span>
                     <span className="inline-flex items-center gap-1"><Eye className="h-3 w-3" /> {p.views}</span>
                   </div>
@@ -122,7 +129,14 @@ export function PostsManager() {
                     <Switch checked={p.featured} onCheckedChange={() => toggleFeatured(p)} />
                     <span className="text-[10px] text-muted-foreground">Featured</span>
                   </div>
-                  <Badge variant={p.status === 'PUBLISHED' ? 'default' : 'secondary'} className={p.status === 'PUBLISHED' ? 'bg-emerald-600 text-white' : ''}>
+                  <Badge
+                    variant={p.status === 'PUBLISHED' ? 'default' : 'secondary'}
+                    className={
+                      p.status === 'PUBLISHED' ? 'bg-emerald-600 text-white'
+                      : p.status === 'SCHEDULED' ? 'bg-amber-500 text-white'
+                      : ''
+                    }
+                  >
                     {p.status}
                   </Badge>
                 </div>

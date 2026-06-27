@@ -16,7 +16,7 @@ import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
 import { CategoryIcon } from '@/lib/category-icons'
 import { formatShortDate, relativeTime } from '@/lib/helpers'
-import { ArrowLeft, Clock, Eye, Heart, Share2, MessageCircle, Twitter, Facebook, Link2, ChevronRight } from 'lucide-react'
+import { ArrowLeft, Clock, Eye, Heart, Share2, MessageCircle, Twitter, Facebook, Link2, ChevronRight, ShoppingBag, Package, ExternalLink } from 'lucide-react'
 
 type FullPost = Post & { author: User; category: Category; comments: Comment[] }
 type Related = Post & { author: User; category: Category }
@@ -196,6 +196,49 @@ export function PostView({ slug }: { slug: string }) {
               </Button>
             </div>
           </div>
+
+          {/* Affiliate links / recommended products */}
+          {post.affiliateLinks && post.affiliateLinks.length > 0 && (
+            <section className="mt-10 rounded-2xl border border-border bg-secondary/30 p-6">
+              <div className="flex items-center justify-between mb-1">
+                <h3 className="font-display text-xl font-semibold flex items-center gap-2">
+                  <ShoppingBag className="h-5 w-5 text-primary" /> Recommended supplies
+                </h3>
+              </div>
+              <p className="text-xs text-muted-foreground mb-4">
+                Some of the links below are affiliate links. If you buy something through them, we may earn a small commission at no extra cost to you. We only recommend products we genuinely use and love.
+              </p>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {post.affiliateLinks.map((link) => (
+                  <a
+                    key={link.id}
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer sponsored"
+                    className="group flex gap-3 rounded-xl border border-border bg-card p-3 hover:shadow-md hover:border-primary/40 transition-all"
+                  >
+                    <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-muted">
+                      {link.image ? (
+                        <img src={link.image} alt={link.title} className="h-full w-full object-cover" />
+                      ) : (
+                        <div className="h-full w-full flex items-center justify-center text-muted-foreground/40"><Package className="h-6 w-6" /></div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium leading-snug line-clamp-2 group-hover:text-primary">{link.title}</p>
+                      {link.description && <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{link.description}</p>}
+                      <div className="mt-1.5 flex items-center gap-2">
+                        {link.price && <span className="text-sm font-semibold text-primary">{link.price}</span>}
+                        <span className="inline-flex items-center gap-1 text-xs text-muted-foreground group-hover:text-primary">
+                          {link.label || 'Check price'} <ExternalLink className="h-3 w-3" />
+                        </span>
+                      </div>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </section>
+          )}
 
           {/* Comments */}
           <section className="mt-12">

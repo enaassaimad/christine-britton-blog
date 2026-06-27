@@ -18,7 +18,12 @@ export async function GET(_req: NextRequest, ctx: { params: Promise<{ id: string
   if (post.status !== 'PUBLISHED' && !user) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
-  return NextResponse.json({ post })
+  // Parse affiliate links for the editor
+  let affiliateLinks: any[] = []
+  if (post.affiliateLinks) {
+    try { affiliateLinks = JSON.parse(post.affiliateLinks) } catch {}
+  }
+  return NextResponse.json({ post: { ...post, affiliateLinks } })
 }
 
 export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
@@ -31,12 +36,18 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string 
   if (!existing) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
   const data: any = {}
-  for (const key of ['title', 'excerpt', 'content', 'coverImage', 'coverAlt', 'status', 'tags', 'categoryId', 'metaTitle', 'metaDescription']) {
+  for (const key of ['title', 'excerpt', 'content', 'coverImage', 'coverAlt', 'tags', 'categoryId', 'metaTitle', 'metaDescription']) {
     if (key in body) data[key] = body[key]
+  }
+  if ('status' in body) {
+    data.status = ['DRAFT', 'PUBLISHED', 'SCHEDULED'].includes(body.status) ? body.status : 'DRAFT'
   }
   if ('featured' in body) data.featured = !!body.featured
   if ('trending' in body) data.trending = !!body.trending
   if ('showAds' in body) data.showAds = body.showAds !== false
+  if ('affiliateLinks' in body) {
+    data.affiliateLinks = body.affiliateLinks ? JSON.stringify(body.affiliateLinks) : null
+  }
 
   if (body.slug && body.slug !== existing.slug) {
     let slug = slugify(body.slug)
@@ -51,11 +62,26 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string 
     data.readMinutes = estimateReadTime(body.content)
     if (!body.excerpt) data.excerpt = excerptFromContent(body.content)
   }
-  if (data.status === 'PUBLISHED' && !existing.publishedAt) {
-    data.publishedAt = body.publishedAt ? new Date(body.publishedAt) : new Date()
-  }
-  if (body.publishedAt) {
-    data.publishedAt = new Date(body.publishedAt)
+
+  // Resolve publishedAt based on status transitions
+  const newStatus = data.status || existing.status
+  const providedDate = body.publishedAt ? new Date(body.publishedAt) : null
+  if (newStatus === 'PUBLISHED') {
+    if (providedDate && providedDate <= new Date()) {
+      data.publishedAt = providedDate
+    } else if (!existing.publishedAt || existing.status !== 'PUBLISHED') {
+      data.publishedAt = new Date()
+    } else if (providedDate) {
+      data.publishedAt = providedDate
+    }
+  } else if (newStatus === 'SCHEDULED') {
+    data.publishedAt = providedDate || existing.publishedAt || new Date(Date.now() + 60 * 60 * 1000)
+    // If scheduled date is already in the past, bump to now+1h to keep it scheduled
+    if (data.publishedAt <= new Date()) {
+      data.publishedAt = new Date(Date.now() + 60 * 60 * 1000)
+    }
+  } else if (newStatus === 'DRAFT') {
+    if (providedDate) data.publishedAt = providedDate
   }
 
   const post = await db.post.update({

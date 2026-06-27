@@ -49,3 +49,32 @@ Stage Summary:
 - Admin credentials: admin@christinebritton.com / admin123
 - 7 categories, 10 full articles with real titles + authentic bodies, 12 AI-generated art-themed images.
 - ESLint clean, dev server healthy, browser-verified end-to-end.
+
+---
+Task ID: 15-23
+Agent: main (Z.ai Code)
+Task: Add scheduling, AI text-to-image generator, WordPress-style post form, and affiliate links to the admin panel.
+
+Work Log:
+- Updated Prisma schema: added `affiliateLinks String?` (JSON-encoded array) to Post model; documented SCHEDULED status. Ran db:push + db:generate.
+- Created `src/lib/scheduler.ts` with `publishDueScheduledPosts()` helper that promotes SCHEDULED → PUBLISHED when publishedAt <= now. Called at top of posts list and slug routes so scheduling "just works" without a cron job.
+- Built `/api/generate-image` route using z-ai-web-dev-sdk: accepts {prompt, size}, generates image via AI, saves to /public/uploads, registers in Media table, returns {url}. Handles 429 rate-limit with friendly message.
+- Updated posts list/create and posts/[id] PUT routes: added SCHEDULED status handling, affiliateLinks JSON serialization, and date resolution logic (PUBLISHED sets now if no date, SCHEDULED requires future date with auto-bump if past).
+- Updated posts/slug/[slug] route: parses affiliateLinks JSON for the public post view.
+- Built `GenerateImageDialog` component: prompt textarea, size selector (6 sizes), generate button with loading state, result preview, "Use as cover" / "Insert into content" / "Copy URL" actions. Connected to /api/generate-image.
+- Built `AffiliateLinksEditor` component: add/remove/edit affiliate link cards with fields (title, URL, price, image, button label, description). Shows FTC/ASA compliance note.
+- Built `Metabox` component: WordPress-style collapsible sidebar boxes with title, icon, description, action badge, expand/collapse.
+- Rewrote `PostEditor` as WordPress-style form: two-column layout with main column (title+permalink, content editor with Visual/Preview tabs + AI Image button, excerpt metabox, affiliate links metabox) and sidebar (Publish metabox with Draft/Publish/Schedule radio + date picker + Featured/Trending/ShowAds toggles + action buttons, Category radio list, Tags, Featured Image with Upload/Library/Generate buttons, SEO with Google snippet preview).
+- Updated `PostsManager`: added SCHEDULED status badge (amber) + scheduled date display; added SCHEDULED to status filter.
+- Updated `PostView` (public): renders "Recommended supplies" affiliate section with disclosure text, product cards (image, title, description, price, "Check price" button), rel="sponsored" links.
+- Updated types (AffiliateLink interface), API client (generateImage method).
+- Fixed Prisma client regeneration issue (old client didn't know about affiliateLinks field → 500 errors; regenerated + restarted dev server).
+- Verified end-to-end with Agent Browser: created scheduled post (SCHEDULED status saved correctly), generated AI image from prompt (set as cover), added affiliate link (Posca markers with price/URL/description), published post, viewed on public site — affiliate section renders with disclosure and product card.
+
+Stage Summary:
+- Four new professional features fully functional and browser-verified:
+  1. Post scheduling: SCHEDULED status with future date, auto-publishes when time arrives, amber badge in posts list.
+  2. AI text-to-image: prompt → generated image → use as cover or insert into content. Saved to media library.
+  3. WordPress-style editor: collapsible metaboxes (Publish, Category, Tags, Featured Image, Excerpt, Affiliate Links, SEO), radio-based publish action, Google snippet preview.
+  4. Affiliate links: per-post JSON-stored links with title/URL/price/image/description, rendered publicly with FTC-style disclosure and rel="sponsored".
+- ESLint clean, 10 posts intact, dev server healthy.

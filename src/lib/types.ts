@@ -33,6 +33,7 @@ export interface Post {
   metaTitle?: string | null
   metaDescription?: string | null
   showAds: boolean
+  affiliateLinks?: AffiliateLink[] | null
   views: number
   likes: number
   authorId: string
@@ -50,6 +51,16 @@ export interface Comment {
   content: string
   status: string
   createdAt: string
+}
+
+export interface AffiliateLink {
+  id: string
+  title: string
+  url: string
+  description?: string
+  image?: string
+  price?: string
+  label?: string
 }
 
 export interface SiteSetting {

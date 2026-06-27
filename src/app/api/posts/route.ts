@@ -2,11 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { getCurrentUser } from '@/lib/auth'
 import { slugify, estimateReadTime, excerptFromContent } from '@/lib/helpers'
+import { publishDueScheduledPosts } from '@/lib/scheduler'
 
 // Public: list published posts. Admin: can filter by status.
 export async function GET(req: NextRequest) {
+  // Auto-publish any scheduled posts whose time has come
+  await publishDueScheduledPosts()
+
   const { searchParams } = new URL(req.url)
-  const status = searchParams.get('status') // PUBLISHED | DRAFT | ALL
+  const status = searchParams.get('status') // PUBLISHED | DRAFT | SCHEDULED | ALL
   const category = searchParams.get('category') // slug
   const tag = searchParams.get('tag')
   const featured = searchParams.get('featured')
@@ -67,11 +71,13 @@ export async function POST(req: NextRequest) {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await req.json()
-  const { title, excerpt, content, coverImage, coverAlt, status, featured, trending, tags, categoryId, metaTitle, metaDescription, showAds, publishedAt } = body
+  const { title, excerpt, content, coverImage, coverAlt, status, featured, trending, tags, categoryId, metaTitle, metaDescription, showAds, publishedAt, affiliateLinks } = body
 
   if (!title || !content || !categoryId) {
     return NextResponse.json({ error: 'Title, content and category are required' }, { status: 400 })
   }
+
+  const finalStatus = ['DRAFT', 'PUBLISHED', 'SCHEDULED'].includes(status) ? status : 'DRAFT'
 
   let slug = slugify(body.slug || title)
   const existing = await db.post.findUnique({ where: { slug } })
@@ -82,6 +88,24 @@ export async function POST(req: NextRequest) {
   const finalExcerpt = excerpt || excerptFromContent(content)
   const readMinutes = estimateReadTime(content)
 
+  // Resolve publishedAt based on status
+  let resolvedPublishedAt: Date | null = null
+  const providedDate = publishedAt ? new Date(publishedAt) : null
+  if (finalStatus === 'PUBLISHED') {
+    resolvedPublishedAt = providedDate && providedDate <= new Date() ? providedDate : new Date()
+  } else if (finalStatus === 'SCHEDULED') {
+    // Scheduled posts MUST have a future publishedAt; if none provided, default to +1h
+    resolvedPublishedAt = providedDate || new Date(Date.now() + 60 * 60 * 1000)
+  } else {
+    // DRAFT
+    resolvedPublishedAt = providedDate
+  }
+
+  // SCHEDULED sanity: if scheduled date is in the past, treat as published now
+  if (finalStatus === 'SCHEDULED' && resolvedPublishedAt <= new Date()) {
+    resolvedPublishedAt = new Date()
+  }
+
   const post = await db.post.create({
     data: {
       title,
@@ -90,7 +114,7 @@ export async function POST(req: NextRequest) {
       content,
       coverImage,
       coverAlt,
-      status: status || 'DRAFT',
+      status: finalStatus,
       featured: !!featured,
       trending: !!trending,
       tags: tags || null,
@@ -99,7 +123,8 @@ export async function POST(req: NextRequest) {
       metaTitle,
       metaDescription,
       showAds: showAds !== false,
-      publishedAt: status === 'PUBLISHED' ? (publishedAt ? new Date(publishedAt) : new Date()) : (publishedAt ? new Date(publishedAt) : null),
+      affiliateLinks: affiliateLinks ? JSON.stringify(affiliateLinks) : null,
+      publishedAt: resolvedPublishedAt,
       readMinutes,
     },
     include: { author: { select: { id: true, name: true, avatar: true } }, category: true },

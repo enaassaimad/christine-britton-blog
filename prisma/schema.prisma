@@ -44,7 +44,7 @@ model Post {
   content       String    // markdown / html
   coverImage    String?
   coverAlt      String?
-  status        String    @default("DRAFT") // DRAFT | PUBLISHED
+  status        String    @default("DRAFT") // DRAFT | PUBLISHED | SCHEDULED
   featured      Boolean   @default(false)
   trending      Boolean   @default(false)
   readMinutes   Int       @default(5)
@@ -53,6 +53,8 @@ model Post {
   metaDescription String?
   // AdSense control
   showAds       Boolean   @default(true)
+  // Affiliate links: JSON-encoded array of {id, title, url, description, image, price, label}
+  affiliateLinks String?
   views         Int       @default(0)
   likes         Int       @default(0)
 

@@ -81,4 +81,9 @@ export const api = {
     create: (email: string, name?: string) =>
       request<{ subscriber: { id: string } }>('/api/subscribers', { method: 'POST', body: JSON.stringify({ email, name }) }),
   },
+  generateImage: (prompt: string, size = '1344x768') =>
+    request<{ url: string; prompt: string; size: string }>('/api/generate-image', {
+      method: 'POST',
+      body: JSON.stringify({ prompt, size }),
+    }),
 }
