@@ -34,6 +34,7 @@ interface GeneratedPost {
   readMinutes: number
   wordCount: number
   imageGenerated?: boolean
+  imagePrompt?: string
 }
 
 interface Props {
@@ -54,6 +55,7 @@ export function AIPostGeneratorDialog({ open, onOpenChange, categories, onUse }:
   const [tone, setTone] = useState(TONES[0])
   const [generateImage, setGenerateImage] = useState(true)
   const [loading, setLoading] = useState(false)
+  const [imageLoading, setImageLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<GeneratedPost | null>(null)
   const [showPreview, setShowPreview] = useState(false)
@@ -77,16 +79,36 @@ export function AIPostGeneratorDialog({ open, onOpenChange, categories, onUse }:
     setError(null)
     setResult(null)
     try {
+      // Step 1: Generate text only (fast, ~10-15s) — no image, avoids 504 timeout
       const res = await api.aiGeneratePost({
         focusKeyword: focusKeyword.trim(),
         relatedKeywords,
         topic: topic.trim() || undefined,
         category: categories.find((c) => c.id === category)?.name,
         tone,
-        generateImage,
       })
       setResult(res)
-      toast.success(`Generated! SEO score: ${res.seoScore.score}%`)
+      toast.success(`Article generated! SEO score: ${res.seoScore.score}%`)
+
+      // Step 2: Generate cover image SEPARATELY (avoids gateway timeout on combined request)
+      if (generateImage && res.imagePrompt) {
+        setImageLoading(true)
+        try {
+          const imgRes = await api.generateImage(res.imagePrompt, '1344x768')
+          setResult((prev) => prev ? {
+            ...prev,
+            coverImage: imgRes.url,
+            coverAlt: `${focusKeyword.trim()} — ${res.title.slice(0, 100)}`,
+            imageGenerated: true,
+          } : prev)
+          toast.success('Cover image generated.')
+        } catch (e: any) {
+          toast.error('Image generation failed — you can add one manually in the editor.')
+          setResult((prev) => prev ? { ...prev, imageGenerated: false } : prev)
+        } finally {
+          setImageLoading(false)
+        }
+      }
     } catch (e: any) {
       setError(e.message || 'Generation failed.')
     } finally {
@@ -230,6 +252,14 @@ export function AIPostGeneratorDialog({ open, onOpenChange, categories, onUse }:
                 <div className="h-16 w-24 rounded-md overflow-hidden bg-muted shrink-0">
                   <img src={result.coverImage} alt="" className="h-full w-full object-cover" />
                 </div>
+              ) : imageLoading ? (
+                <div className="text-right shrink-0 flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                  <div>
+                    <p className="text-xs text-primary font-medium">Generating image…</p>
+                    <p className="text-[10px] text-muted-foreground">This takes ~20s</p>
+                  </div>
+                </div>
               ) : (
                 <div className="text-right shrink-0">
                   <p className="text-xs text-amber-600 font-medium">⚠ Image failed</p>
@@ -288,11 +318,11 @@ export function AIPostGeneratorDialog({ open, onOpenChange, categories, onUse }:
           </Button>
           {result ? (
             <>
-              <Button variant="outline" onClick={generate} disabled={loading}>
+              <Button variant="outline" onClick={generate} disabled={loading || imageLoading}>
                 <Sparkles className="h-4 w-4 mr-1.5" /> Regenerate
               </Button>
-              <Button onClick={usePost}>
-                <Check className="h-4 w-4 mr-1.5" /> Use this article
+              <Button onClick={usePost} disabled={imageLoading}>
+                <Check className="h-4 w-4 mr-1.5" /> {imageLoading ? 'Generating image…' : 'Use this article'}
               </Button>
             </>
           ) : (

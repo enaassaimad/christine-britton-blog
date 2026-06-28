@@ -92,7 +92,6 @@ export const api = {
     topic?: string
     category?: string
     tone?: string
-    generateImage?: boolean
   }) =>
     request<{
       title: string
@@ -114,6 +113,7 @@ export const api = {
       readMinutes: number
       wordCount: number
       imageGenerated?: boolean
+      imagePrompt?: string
     }>('/api/ai-generate-post', { method: 'POST', body: JSON.stringify(data) }),
   pages: {
     list: () => request<{ pages: Page[] }>('/api/pages'),

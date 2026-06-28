@@ -4,8 +4,6 @@ import { db } from '@/lib/db'
 import { calculateSEOScore } from '@/lib/seo-score'
 import { slugify, excerptFromContent, estimateReadTime } from '@/lib/helpers'
 import ZAI from 'z-ai-web-dev-sdk'
-import path from 'path'
-import { writeFile, mkdir } from 'fs/promises'
 
 interface GenerateBody {
   focusKeyword: string
@@ -13,36 +11,6 @@ interface GenerateBody {
   topic?: string
   category?: string
   tone?: string
-  generateImage?: boolean
-}
-
-/** Generate and save an AI image, returning the public URL or null. */
-async function generateAndSaveImage(zai: any, prompt: string, retries = 2): Promise<string | null> {
-  for (let attempt = 0; attempt <= retries; attempt++) {
-    try {
-      const imgResponse = await zai.images.generations.create({
-        prompt,
-        size: '1344x768',
-      })
-      const base64 = imgResponse.data?.[0]?.base64
-      if (!base64) throw new Error('No image data returned')
-      const buffer = Buffer.from(base64, 'base64')
-      const filename = `ai-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.png`
-      const uploadDir = path.join(process.cwd(), 'public', 'uploads')
-      await mkdir(uploadDir, { recursive: true })
-      await writeFile(path.join(uploadDir, filename), buffer)
-      const url = `/uploads/${filename}`
-      await db.media.create({ data: { url, alt: prompt.slice(0, 200), type: 'image' } })
-      return url
-    } catch (e) {
-      if (attempt < retries) {
-        await new Promise((r) => setTimeout(r, 3000 * (attempt + 1)))
-        continue
-      }
-      return null
-    }
-  }
-  return null
 }
 
 export async function POST(req: NextRequest) {
@@ -62,7 +30,6 @@ export async function POST(req: NextRequest) {
   const relatedKeywords = (body.relatedKeywords || []).filter((k) => k.trim())
   const topic = body.topic || focusKeyword
   const tone = body.tone || 'informative and engaging'
-  const generateImage = body.generateImage !== false
 
   try {
     const zai = await ZAI.create()
@@ -133,21 +100,14 @@ Use section-1, section-2, section-3 etc. as IDs, matching the order of the TOC e
 
 Write the article now:`
 
-    // Start text generation and image generation IN PARALLEL for speed
-    const textPromise = zai.chat.completions.create({
+    // Generate ONLY the text (fast, ~10-15s) — image is generated separately by the frontend
+    const completion = await zai.chat.completions.create({
       messages: [
         { role: 'assistant', content: systemPrompt },
         { role: 'user', content: userPrompt },
       ],
       thinking: { type: 'disabled' },
     })
-
-    const imagePromise = generateImage
-      ? generateAndSaveImage(zai, `A vibrant, editorial-style illustration for an article about "${focusKeyword}". Art style: ${body.category || 'fluid art'}. Professional, high-quality, suitable for a blog cover image.`, 2)
-      : Promise.resolve(null)
-
-    // Wait for both in parallel
-    const [completion, coverImage] = await Promise.all([textPromise, imagePromise])
 
     let articleContent = completion.choices[0]?.message?.content || ''
 
@@ -176,13 +136,16 @@ Write the article now:`
       excerpt,
       metaDescription,
       slug,
-      coverAlt: coverImage ? `${focusKeyword} — ${title.slice(0, 100)}` : '',
+      coverAlt: '',
       focusKeyword,
       relatedKeywords,
     })
 
     // Generate tags from keywords
     const tags = [focusKeyword, ...relatedKeywords].slice(0, 6).join(', ')
+
+    // Build a suggested image prompt for the frontend to use
+    const imagePrompt = `A vibrant, editorial-style illustration for an article about "${focusKeyword}". Art style: ${body.category || 'fluid art'}. Professional, high-quality, suitable for a blog cover image.`
 
     return NextResponse.json({
       title,
@@ -191,15 +154,16 @@ Write the article now:`
       excerpt,
       metaTitle: title,
       metaDescription,
-      coverImage,
-      coverAlt: coverImage ? `${focusKeyword} — ${title.slice(0, 100)}` : '',
+      coverImage: null,
+      coverAlt: '',
       tags,
       focusKeyword,
       relatedKeywords,
       seoScore: seoResult,
       readMinutes: estimateReadTime(contentWithoutH1),
       wordCount: contentWithoutH1.split(/\s+/).filter(Boolean).length,
-      imageGenerated: !!coverImage,
+      imageGenerated: false,
+      imagePrompt, // frontend uses this to generate the image separately
     })
   } catch (e: any) {
     const msg = e?.message || 'AI generation failed'

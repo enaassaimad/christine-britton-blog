@@ -184,3 +184,30 @@ Stage Summary:
   4. Admin UI: AI Generate button in Posts Manager, full dialog with keyword inputs, live SEO score preview, content preview, one-click draft creation.
   5. Settings: AI tab with API key and model inputs.
 - ESLint clean, dev server healthy, test draft cleaned up.
+
+---
+Task ID: 67-69
+Agent: main (Z.ai Code)
+Task: Fix 504 timeout when generating image in AI post generator.
+
+Work Log:
+- Root cause: The /api/ai-generate-post route generated both text (GLM LLM, ~15s) AND image (AI image gen, ~20-30s) in a single request. Total ~40-50s exceeded the Caddy gateway's timeout, causing a 504 Gateway Timeout.
+- Fix: Split into two separate requests:
+  1. `/api/ai-generate-post` now generates TEXT ONLY (fast, ~10-15s, well within gateway timeout). Returns an `imagePrompt` field for the frontend to use.
+  2. The frontend (AI generator dialog) calls the existing `/api/generate-image` route SEPARATELY after the text arrives, with a loading indicator.
+- Updated `/api/ai-generate-post` route: removed all image generation code, removed `generateImage` parameter, returns `imagePrompt` string for frontend use.
+- Updated API client: removed `generateImage` parameter from `aiGeneratePost` method, added `imagePrompt` to return type.
+- Updated `AIPostGeneratorDialog`:
+  - Added `imageLoading` state
+  - Rewrote `generate()` function: Step 1 calls aiGeneratePost (text only) and sets result immediately. Step 2 (if generateImage checkbox is checked) calls api.generateImage separately and updates the result with the cover image.
+  - Added image loading indicator in the SEO score banner (spinner + "Generating image… This takes ~20s")
+  - "Use this article" button disabled while image is generating, shows "Generating image…" text
+  - "Regenerate" button also disabled while image is generating
+  - Toast notifications for each step: "Article generated!" then "Cover image generated." or "Image generation failed"
+- Verified with Agent Browser: Generated article with focus keyword "fluid art techniques" — text arrived in ~15s (no 504), image generated separately in ~30s with loading indicator, final result showed cover image + TOC + SEO score. Zero 504 errors in dev log.
+
+Stage Summary:
+- 504 timeout fixed by splitting text and image generation into separate HTTP requests.
+- Text arrives first (fast, within gateway timeout), image generates second with a clear loading indicator.
+- User can use the article immediately after text arrives (image is optional and can be added manually if it fails).
+- ESLint clean, 0 504 errors, browser-verified.
