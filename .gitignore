@@ -53,8 +53,8 @@ server.log
 # Skills directory
 /skills/
 # Database
-db/*.db
-db/*.db-journal
+# db/*.db
+# db/*.db-journal
 
 # User uploads (runtime-generated)
 public/uploads/
