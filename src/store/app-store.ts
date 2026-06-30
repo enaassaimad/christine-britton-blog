@@ -1,6 +1,7 @@
 'use client'
 
 import { create } from 'zustand'
+import { routeToUrl, urlToRoute } from '@/lib/url-router'
 
 export type Route =
   | { name: 'home' }
@@ -49,9 +50,24 @@ interface AppState {
   editPost: (id: string | null) => void
   editProduct: (id: string | null) => void
   editPage: (id: string | null) => void
+
+  /** Called by the popstate listener / on mount to sync from URL */
+  syncFromUrl: () => void
 }
 
-export const useApp = create<AppState>((set) => ({
+function pushUrl(route: Route) {
+  if (typeof window === 'undefined') return
+  const url = routeToUrl(route)
+  if (window.location.pathname + window.location.search !== url) {
+    window.history.pushState({ route }, '', url)
+  }
+}
+
+function scrollToTop() {
+  if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior })
+}
+
+export const useApp = create<AppState>((set, get) => ({
   route: { name: 'home' },
   adminOpen: false,
   adminView: 'dashboard',
@@ -60,25 +76,44 @@ export const useApp = create<AppState>((set) => ({
 
   navigate: (route) => {
     set({ route })
-    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior })
+    pushUrl(route)
+    scrollToTop()
   },
   openPost: (slug) => {
-    set({ route: { name: 'post', slug } })
-    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior })
+    const route = { name: 'post' as const, slug }
+    set({ route })
+    pushUrl(route)
+    scrollToTop()
   },
   openCategory: (slug) => {
-    set({ route: { name: 'category', slug } })
-    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior })
+    const route = { name: 'category' as const, slug }
+    set({ route })
+    pushUrl(route)
+    scrollToTop()
   },
-  openSearch: (q) => set({ route: q ? { name: 'search', q } : { name: 'blog' }, searchOpen: true }),
+  openSearch: (q) => {
+    if (q) {
+      const route = { name: 'search' as const, q }
+      set({ route, searchOpen: true })
+      pushUrl(route)
+    } else {
+      set({ route: { name: 'blog' }, searchOpen: true })
+      pushUrl({ name: 'blog' })
+    }
+    scrollToTop()
+  },
   setSearchOpen: (open) => set({ searchOpen: open }),
   openProduct: (slug) => {
-    set({ route: { name: 'product', slug } })
-    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior })
+    const route = { name: 'product' as const, slug }
+    set({ route })
+    pushUrl(route)
+    scrollToTop()
   },
   openPage: (slug) => {
-    set({ route: { name: 'page', slug } })
-    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior })
+    const route = { name: 'page' as const, slug }
+    set({ route })
+    pushUrl(route)
+    scrollToTop()
   },
 
   openAdmin: (view = 'dashboard') => set({ adminOpen: true, adminView: view }),
@@ -87,4 +122,18 @@ export const useApp = create<AppState>((set) => ({
   editPost: (id) => set({ editingPostId: id, adminView: 'editor' }),
   editProduct: (id) => set({ editingPostId: id, adminView: 'productEditor' }),
   editPage: (id) => set({ editingPostId: id, adminView: 'pageEditor' }),
+
+  syncFromUrl: () => {
+    if (typeof window === 'undefined') return
+    const { route, admin } = urlToRoute(window.location.pathname, window.location.search)
+    set({ route, adminOpen: admin ? true : get().adminOpen })
+    // If visiting /admin directly and not authenticated, the AdminApp will show login
+    if (admin) {
+      set({ adminOpen: true, adminView: 'login' })
+      // Clean the URL to / so the admin overlay isn't tied to the path
+      if (window.location.pathname === '/admin') {
+        window.history.replaceState(null, '', '/')
+      }
+    }
+  },
 }))

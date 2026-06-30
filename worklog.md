@@ -293,3 +293,36 @@ Stage Summary:
 - Admin panel is now hidden from all public visitors — no visible button anywhere.
 - Admin access is via secret URL only: append #admin to the site URL.
 - After login, the admin session persists via httpOnly cookie (no need to re-enter #admin on every visit).
+
+---
+Task ID: 85-90
+Agent: main (Z.ai Code)
+Task: Add WordPress-style routing system with clean slug-based URLs for posts, pages, categories, products, and admin.
+
+Work Log:
+- Created `src/lib/url-router.ts` with `urlToRoute()` and `routeToUrl()` functions mapping between URLs and routes:
+  - `/` → home
+  - `/blog` → all articles (supports `?q=` for search)
+  - `/about` → about page
+  - `/contact` → contact page
+  - `/shop` → shop
+  - `/article/{slug}` → single post (e.g. /article/what-is-fluid-art-painting)
+  - `/category/{slug}` → category listing (e.g. /category/fluid-art)
+  - `/product/{slug}` → digital product (e.g. /product/the-quantum-prescription)
+  - `/page/{slug}` → legal/custom page (e.g. /page/privacy-policy)
+  - `/admin` → admin panel
+- Updated Zustand store: all navigation functions (navigate, openPost, openCategory, openProduct, openPage, openSearch) now push URLs to the browser history via `window.history.pushState()`. Added `syncFromUrl()` function that parses `window.location` to determine the current route and admin state.
+- Updated `src/app/page.tsx` Shell component: calls `syncFromUrl()` on mount (handles direct visits/refreshes) and listens to `popstate` events for browser back/forward button support.
+- Created `src/app/[...slug]/page.tsx` catch-all route that re-exports the main page component — this makes every URL directly visitable and refreshable (no 404s). Next.js serves the same app for all paths; the client-side router determines what to render.
+- Switched admin access from `#admin` hash to `/admin` URL path. When visiting `/admin`, the admin panel opens and the URL is cleaned to `/` (admin session persists via cookie).
+- Verified all 9 URL paths return HTTP 200 on direct visit: /, /blog, /about, /contact, /shop, /article/{slug}, /category/{slug}, /page/{slug}, /admin.
+- Verified browser back/forward buttons work (popstate listener re-syncs route from URL).
+- Verified navigation changes the URL in the address bar (e.g. clicking an article → /article/what-is-fluid-art-painting).
+- Verified direct visits to /page/privacy-policy show the Privacy Policy content, /category/fluid-art shows the Fluid Art category, /admin shows the login screen.
+
+Stage Summary:
+- Full WordPress-style routing: clean, shareable, SEO-friendly URLs with slugs for all content types.
+- Browser back/forward/reload all work correctly.
+- Admin panel accessible only via /admin URL (invisible to public visitors).
+- Catch-all route ensures no 404 errors on any valid URL.
+- ESLint clean, all routes browser-verified.

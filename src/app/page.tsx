@@ -40,24 +40,19 @@ function PublicSite() {
 }
 
 function Shell() {
-  const { adminOpen, route, openAdmin, closeAdmin } = useApp()
+  const { adminOpen, route, syncFromUrl } = useApp()
 
-  // Secret URL-based admin access: visit /#admin to open the admin panel
+  // On first mount: parse the URL to determine the route (handles direct visits / refreshes)
   useEffect(() => {
-    const checkHash = () => {
-      const hash = window.location.hash.toLowerCase()
-      if (hash === '#admin' || hash.startsWith('#admin/')) {
-        openAdmin('login')
-        // Clean the hash so it doesn't reopen on refresh (admin session is cookie-based)
-        if (window.history && window.history.replaceState) {
-          window.history.replaceState(null, '', window.location.pathname)
-        }
-      }
-    }
-    checkHash()
-    window.addEventListener('hashchange', checkHash)
-    return () => window.removeEventListener('hashchange', checkHash)
-  }, [openAdmin])
+    syncFromUrl()
+  }, [syncFromUrl])
+
+  // Listen to browser back/forward (popstate) — re-sync the route from the URL
+  useEffect(() => {
+    const onPopState = () => syncFromUrl()
+    window.addEventListener('popstate', onPopState)
+    return () => window.removeEventListener('popstate', onPopState)
+  }, [syncFromUrl])
 
   // Update document title based on route
   useEffect(() => {
@@ -68,6 +63,9 @@ function Shell() {
       else if (route.name === 'blog') document.title = `${base} — All Tutorials`
       else if (route.name === 'about') document.title = `${base} — About`
       else if (route.name === 'contact') document.title = `${base} — Contact`
+      else if (route.name === 'shop') document.title = `${base} — Shop`
+      else if (route.name === 'product') document.title = `${base} — Shop`
+      else if (route.name === 'page') document.title = `${base} — ${route.slug.replace(/-/g, ' ')}`
     }
   }, [route])
 
