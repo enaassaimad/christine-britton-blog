@@ -252,3 +252,21 @@ Stage Summary:
 - Upload images, browse media library, insert videos (YouTube/Vimeo/mp4), insert links — all directly from the visual editor toolbar.
 - Content stored as HTML, renders perfectly on the public site via rehype-raw.
 - ESLint clean, browser-verified.
+
+---
+Task ID: 78-80
+Agent: main (Z.ai Code)
+Task: Switch AI post generator to use direct GLM 5.2 API (open.bigmodel.cn) with admin's API key.
+
+Work Log:
+- Rewrote /api/ai-generate-post route to call the GLM API directly via fetch() to https://open.bigmodel.cn/api/paas/v4/chat/completions instead of z-ai-web-dev-sdk.
+- The route now fetches the API key and model from SiteSetting (configured in Settings → AI tab).
+- Request format matches the user's curl: Bearer token auth, model "glm-5.2", messages array, thinking disabled, max_tokens 65536, temperature 1.0.
+- Added proper error handling: 401 (invalid key), 429 (rate limit), empty response, with friendly messages.
+- Image generation route (/api/generate-image) still uses z-ai-web-dev-sdk since the user only provided the text API.
+- Verified: generated article "Mastering Acrylic Pouring Techniques" with 897 words, 85% SEO score, table of contents, external links — all working via direct GLM API.
+
+Stage Summary:
+- AI post generator now uses the direct GLM 5.2 API with the admin's API key from Settings → AI.
+- No dependency on z-ai-web-dev-sdk for text generation (only for image generation).
+- ESLint clean, API verified end-to-end.
