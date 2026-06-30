@@ -227,3 +227,28 @@ Work Log:
 
 Stage Summary:
 - Post editor now matches WordPress classic editor with: formatting toolbar (11 markdown buttons), Add Media button with library picker, Visual/Preview tabs, AI Image/Affiliate/HTML insert buttons, plus all existing features (scheduling, affiliate links, SEO metabox, featured image, etc.).
+
+---
+Task ID: 73-77
+Agent: main (Z.ai Code)
+Task: Replace markdown textarea with true WYSIWYG visual editor like WordPress.
+
+Work Log:
+- Built `RichTextEditor` component using `contentEditable` div with `document.execCommand` for true visual formatting.
+- Toolbar with 20 buttons: Undo, Redo, H2, H3, Bold, Italic, Underline, Strikethrough, Align Left/Center/Right, Bullet List, Numbered List, Quote, Inline Code, Insert Link, Upload Image, Media Library, Insert Video, Horizontal Rule.
+- Bold/Italic/etc. now apply VISUAL formatting (e.g. `<b>`, `<i>`) — not markdown `**` — exactly like WordPress.
+- Active format tracking: toolbar buttons highlight when the cursor is in bold/italic/etc. text.
+- Add Media: Upload button (file picker → uploads to media library → inserts `<img>` at cursor) + Media Library button (grid picker → click image to insert).
+- Insert Video: dialog accepting YouTube/Vimeo/direct .mp4 URLs → inserts responsive iframe embed.
+- Insert Link: dialog with URL + optional link text → creates `<a target="_blank">` link.
+- Content stored as HTML (not markdown). The public Markdown component renders HTML via rehype-raw.
+- Updated post-editor: replaced markdown textarea + old formatting toolbar with RichTextEditor. Kept AI Image, Affiliate, HTML insert buttons in the header.
+- Updated insertAtCursor to append HTML to content (for Insert HTML/Affiliate dialogs). Updated insertImageIntoContent to insert `<img>` HTML.
+- Fixed lint: replaced ToolButton component (created during render) with plain button elements + fmtBtn helper.
+- Verified: contentEditable works, bold wraps text in `<b>` tags visually, 20 toolbar buttons present, no console errors.
+
+Stage Summary:
+- True WYSIWYG visual editor replacing the old markdown textarea — what you see is what you get, just like WordPress.
+- Upload images, browse media library, insert videos (YouTube/Vimeo/mp4), insert links — all directly from the visual editor toolbar.
+- Content stored as HTML, renders perfectly on the public site via rehype-raw.
+- ESLint clean, browser-verified.
