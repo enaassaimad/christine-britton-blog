@@ -40,7 +40,24 @@ function PublicSite() {
 }
 
 function Shell() {
-  const { adminOpen, route } = useApp()
+  const { adminOpen, route, openAdmin, closeAdmin } = useApp()
+
+  // Secret URL-based admin access: visit /#admin to open the admin panel
+  useEffect(() => {
+    const checkHash = () => {
+      const hash = window.location.hash.toLowerCase()
+      if (hash === '#admin' || hash.startsWith('#admin/')) {
+        openAdmin('login')
+        // Clean the hash so it doesn't reopen on refresh (admin session is cookie-based)
+        if (window.history && window.history.replaceState) {
+          window.history.replaceState(null, '', window.location.pathname)
+        }
+      }
+    }
+    checkHash()
+    window.addEventListener('hashchange', checkHash)
+    return () => window.removeEventListener('hashchange', checkHash)
+  }, [openAdmin])
 
   // Update document title based on route
   useEffect(() => {

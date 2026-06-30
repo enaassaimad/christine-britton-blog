@@ -270,3 +270,26 @@ Stage Summary:
 - AI post generator now uses the direct GLM 5.2 API with the admin's API key from Settings → AI.
 - No dependency on z-ai-web-dev-sdk for text generation (only for image generation).
 - ESLint clean, API verified end-to-end.
+
+---
+Task ID: 81-84
+Agent: main (Z.ai Code)
+Task: Remove Admin button from public site; add secret URL-based admin access.
+
+Work Log:
+- Removed all Admin buttons from the public website:
+  - Removed "Admin" button from the desktop utility bar (top bar)
+  - Removed "Admin" icon button from the header actions area
+  - Removed "Admin Panel" button from the mobile slide-out menu
+  - Removed "Admin" link from the footer Explore column
+- Removed Shield icon import and openAdmin from useApp destructure in header and footer.
+- Added secret URL-based admin access in page.tsx Shell component:
+  - useEffect listens for hashchange and checks if hash is "#admin"
+  - If #admin detected, opens the admin panel (login screen) via openAdmin('login')
+  - Cleans the URL hash after opening so it doesn't reopen on refresh (admin session is cookie-based)
+- Verified with Agent Browser: 0 admin buttons in header, 0 admin links in footer, #admin URL opens login screen, login succeeds to dashboard.
+
+Stage Summary:
+- Admin panel is now hidden from all public visitors — no visible button anywhere.
+- Admin access is via secret URL only: append #admin to the site URL.
+- After login, the admin session persists via httpOnly cookie (no need to re-enter #admin on every visit).

@@ -5,14 +5,14 @@ import { useApp } from '@/store/app-store'
 import { useSettings } from './settings-context'
 import { api } from '@/lib/api'
 import type { Category } from '@/lib/types'
-import { Search, Menu, X, Shield, Sun } from 'lucide-react'
+import { Search, Menu, X, Sun } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { CategoryIcon } from '@/lib/category-icons'
 import { cn } from '@/lib/utils'
 
 export function Header() {
-  const { navigate, route, openSearch, openAdmin } = useApp()
+  const { navigate, route, openSearch } = useApp()
   const { settings } = useSettings()
   const [categories, setCategories] = useState<Category[]>([])
   const [scrolled, setScrolled] = useState(false)
@@ -47,9 +47,6 @@ export function Header() {
           <span className="inline-flex items-center gap-1.5"><Sun className="h-3 w-3" /> {today}</span>
           <div className="flex items-center gap-4">
             {settings?.location && <span>{settings.location}</span>}
-            <button onClick={() => openAdmin('login')} className="inline-flex items-center gap-1 hover:text-foreground transition-colors">
-              <Shield className="h-3 w-3" /> Admin
-            </button>
           </div>
         </div>
       </div>
@@ -67,7 +64,7 @@ export function Header() {
               </SheetTrigger>
               <SheetContent side="left" className="w-80">
                 <SheetHeader>
-                  <SheetTitle className="font-display text-2xl">{settings?.siteName || 'Lumen'}</SheetTitle>
+                  <SheetTitle className="font-display text-2xl">{settings?.siteName || 'Christine Britton'}</SheetTitle>
                 </SheetHeader>
                 <div className="mt-6 flex flex-col gap-1">
                   {navItems.map((item) => (
@@ -97,21 +94,16 @@ export function Header() {
                     })}
                   </div>
                 </div>
-                <div className="mt-6 px-3">
-                  <Button onClick={() => { openAdmin('login'); setMobileOpen(false) }} variant="outline" className="w-full">
-                    <Shield className="h-4 w-4 mr-2" /> Admin Panel
-                  </Button>
-                </div>
               </SheetContent>
             </Sheet>
 
             {/* Logo */}
             <button onClick={() => navigate({ name: 'home' })} className="flex flex-col items-center md:items-start">
               <span className="font-display text-2xl md:text-3xl font-semibold tracking-tight leading-none">
-                {settings?.siteName || 'Lumen Journal'}
+                {settings?.siteName || 'Christine Britton'}
               </span>
               <span className="hidden md:block text-[11px] uppercase tracking-[0.25em] text-muted-foreground mt-1">
-                {settings?.tagline || 'Stories, ideas & thoughtful living'}
+                {settings?.tagline || 'Fluid art, resin art & creative drawing tutorials'}
               </span>
             </button>
 
@@ -136,9 +128,6 @@ export function Header() {
             <div className="flex items-center gap-1">
               <Button variant="ghost" size="icon" aria-label="Search" onClick={() => openSearch()}>
                 <Search className="h-5 w-5" />
-              </Button>
-              <Button variant="ghost" size="icon" className="hidden md:inline-flex" aria-label="Admin" onClick={() => openAdmin('login')}>
-                <Shield className="h-5 w-5" />
               </Button>
             </div>
           </div>
