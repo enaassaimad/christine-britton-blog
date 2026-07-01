@@ -97,6 +97,7 @@ export interface SiteSetting {
   footerText?: string | null
   aiApiKey?: string | null
   aiModel?: string | null
+  theme?: string | null
 }
 
 export interface Media {

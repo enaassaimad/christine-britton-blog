@@ -1,6 +1,7 @@
 'use client'
 
 import { create } from 'zustand'
+import { routeToUrl, urlToRoute } from '@/lib/url-router'
 
 export type Route =
   | { name: 'home' }
@@ -49,36 +50,76 @@ interface AppState {
   editPost: (id: string | null) => void
   editProduct: (id: string | null) => void
   editPage: (id: string | null) => void
+
+  /** Push a URL onto the browser history (no SPA state change beyond route). */
+  pushUrl: (url: string) => void
+  /** Scroll to top — used after navigation. */
+  scrollToTop: () => void
+  /** Parse window.location and synchronise the store to the current URL. */
+  syncFromUrl: () => void
 }
 
-export const useApp = create<AppState>((set) => ({
+function scrollToTop() {
+  if (typeof window !== 'undefined') {
+    window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior })
+  }
+}
+
+function pushUrl(url: string) {
+  if (typeof window === 'undefined') return
+  // Avoid pushing duplicate entries for the same URL
+  if (window.location.pathname + window.location.search === url) return
+  try {
+    window.history.pushState({}, '', url)
+  } catch {
+    // ignore — some environments restrict history manipulation
+  }
+}
+
+export const useApp = create<AppState>((set, get) => ({
   route: { name: 'home' },
   adminOpen: false,
   adminView: 'dashboard',
   editingPostId: null,
   searchOpen: false,
 
+  pushUrl,
+  scrollToTop,
+
   navigate: (route) => {
     set({ route })
-    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior })
+    pushUrl(routeToUrl(route))
+    scrollToTop()
   },
   openPost: (slug) => {
-    set({ route: { name: 'post', slug } })
-    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior })
+    const route: Route = { name: 'post', slug }
+    set({ route })
+    pushUrl(routeToUrl(route))
+    scrollToTop()
   },
   openCategory: (slug) => {
-    set({ route: { name: 'category', slug } })
-    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior })
+    const route: Route = { name: 'category', slug }
+    set({ route })
+    pushUrl(routeToUrl(route))
+    scrollToTop()
   },
-  openSearch: (q) => set({ route: q ? { name: 'search', q } : { name: 'blog' }, searchOpen: true }),
+  openSearch: (q) => {
+    const route: Route = q ? { name: 'search', q } : { name: 'blog' }
+    set({ route, searchOpen: true })
+    pushUrl(routeToUrl(route))
+  },
   setSearchOpen: (open) => set({ searchOpen: open }),
   openProduct: (slug) => {
-    set({ route: { name: 'product', slug } })
-    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior })
+    const route: Route = { name: 'product', slug }
+    set({ route })
+    pushUrl(routeToUrl(route))
+    scrollToTop()
   },
   openPage: (slug) => {
-    set({ route: { name: 'page', slug } })
-    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior })
+    const route: Route = { name: 'page', slug }
+    set({ route })
+    pushUrl(routeToUrl(route))
+    scrollToTop()
   },
 
   openAdmin: (view = 'dashboard') => set({ adminOpen: true, adminView: view }),
@@ -87,4 +128,19 @@ export const useApp = create<AppState>((set) => ({
   editPost: (id) => set({ editingPostId: id, adminView: 'editor' }),
   editProduct: (id) => set({ editingPostId: id, adminView: 'productEditor' }),
   editPage: (id) => set({ editingPostId: id, adminView: 'pageEditor' }),
+
+  syncFromUrl: () => {
+    if (typeof window === 'undefined') return
+    const { pathname, search } = window.location
+    const parsed = urlToRoute(pathname, search)
+    const adminFromHash = pathname === '/admin'
+    // If we are on /admin, clean the URL back to / so the public site is visible
+    // behind the admin overlay.
+    if (adminFromHash) {
+      set({ route: parsed.route, adminOpen: true })
+      try { window.history.replaceState({}, '', '/') } catch {}
+    } else {
+      set({ route: parsed.route, adminOpen: parsed.admin })
+    }
+  },
 }))

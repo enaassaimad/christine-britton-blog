@@ -11,8 +11,10 @@ import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Save, Loader2, Megaphone, Globe, Palette, Mail, User, Image as ImageIcon, Wand2 } from 'lucide-react'
+import { Save, Loader2, Megaphone, Globe, Palette, Mail, User, Image as ImageIcon, Wand2, LayoutGrid, Check } from 'lucide-react'
 import { toast } from 'sonner'
+import { THEMES, getTheme, applyTheme } from '@/lib/themes'
+import { cn } from '@/lib/utils'
 
 export function SettingsManager() {
   const { refresh } = useSettings()
@@ -57,6 +59,7 @@ export function SettingsManager() {
         <TabsList className="flex-wrap h-auto">
           <TabsTrigger value="general"><Globe className="h-3.5 w-3.5 mr-1.5" /> General</TabsTrigger>
           <TabsTrigger value="branding"><Palette className="h-3.5 w-3.5 mr-1.5" /> Branding</TabsTrigger>
+          <TabsTrigger value="theme"><LayoutGrid className="h-3.5 w-3.5 mr-1.5" /> Theme</TabsTrigger>
           <TabsTrigger value="about"><User className="h-3.5 w-3.5 mr-1.5" /> About</TabsTrigger>
           <TabsTrigger value="adsense"><Megaphone className="h-3.5 w-3.5 mr-1.5" /> AdSense</TabsTrigger>
           <TabsTrigger value="social"><Mail className="h-3.5 w-3.5 mr-1.5" /> Social</TabsTrigger>
@@ -113,6 +116,60 @@ export function SettingsManager() {
           </Card>
         </TabsContent>
 
+        {/* Theme */}
+        <TabsContent value="theme" className="space-y-4 mt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2"><LayoutGrid className="h-4 w-4 text-primary" /> Niche theme presets</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <p className="text-sm text-muted-foreground">Pick a starting palette tailored to your blog&apos;s niche. Each preset sets primary + accent colors, background, and font pairing. You can fine-tune the colors in the Branding tab afterwards.</p>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {THEMES.map((t) => {
+                  const selected = (s.theme || 'art') === t.id
+                  return (
+                    <button
+                      key={t.id}
+                      type="button"
+                      onClick={() => {
+                        applyTheme(t)
+                        update({ theme: t.id, primaryColor: t.colors.primary, accentColor: t.colors.accent })
+                        toast.success(`${t.name} theme applied.`)
+                      }}
+                      className={cn(
+                        'group relative text-left rounded-lg border p-3 transition-all hover:shadow-md',
+                        selected ? 'border-primary ring-2 ring-primary/30' : 'border-border',
+                      )}
+                    >
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="h-8 w-8 rounded-md border border-border" style={{ background: t.colors.background }}>
+                          <span className="block h-full w-1/2 rounded-l-md" style={{ background: t.colors.primary }} />
+                        </span>
+                        <span className="h-8 w-8 rounded-md border border-border" style={{ background: t.colors.card }}>
+                          <span className="block h-full w-full rounded-md" style={{ background: t.colors.accent, opacity: 0.85 }} />
+                        </span>
+                        {selected && (
+                          <span className="ml-auto inline-flex h-5 w-5 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                            <Check className="h-3 w-3" />
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm font-medium leading-tight">{t.name}</p>
+                      <p className="text-[11px] uppercase tracking-wider text-muted-foreground mt-0.5">{t.niche}</p>
+                      <p className="text-xs text-muted-foreground mt-1.5 leading-snug line-clamp-2">{t.description}</p>
+                      <div className="mt-2 flex items-center gap-1">
+                        {[t.colors.primary, t.colors.accent, t.colors.background, t.colors.card, t.colors.border].map((c, i) => (
+                          <span key={i} className="h-3 w-3 rounded-sm border border-black/5" style={{ background: c }} />
+                        ))}
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         {/* About */}
         <TabsContent value="about" className="space-y-4 mt-4">
           <Card>
@@ -126,7 +183,6 @@ export function SettingsManager() {
             </CardContent>
           </Card>
         </TabsContent>
-
         {/* AdSense */}
         <TabsContent value="adsense" className="space-y-4 mt-4">
           <Card>

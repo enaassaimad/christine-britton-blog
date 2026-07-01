@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import type { SiteSetting } from '@/lib/types'
 import { api } from '@/lib/api'
+import { getTheme, applyTheme } from '@/lib/themes'
 
 interface SettingsCtx {
   settings: SiteSetting | null
@@ -20,10 +21,10 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     try {
       const { setting } = await api.settings.get()
       setSettings(setting)
-      // apply primary color as CSS var
-      if (setting.primaryColor) {
-        document.documentElement.style.setProperty('--ring', setting.primaryColor)
-      }
+      // Apply the full theme preset (colors + fonts) — supersedes the old
+      // primaryColor-only approach. Falls back to the 'art' theme if unset.
+      const theme = getTheme(setting.theme)
+      applyTheme(theme)
     } catch {
       // ignore
     } finally {

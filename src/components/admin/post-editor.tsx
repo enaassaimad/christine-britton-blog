@@ -11,17 +11,15 @@ import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Markdown } from '@/components/site/markdown'
 import { Metabox } from './metabox'
 import { AffiliateLinksEditor } from './affiliate-links-editor'
 import { GenerateImageDialog } from './generate-image-dialog'
 import { InsertHtmlDialog, InsertAffiliateDialog } from './insert-dialogs'
+import { RichTextEditor } from './rich-text-editor'
 import {
-  ArrowLeft, Save, Eye, Upload, ImageIcon, Loader2, Sparkles, Send, Clock,
+  ArrowLeft, Save, Upload, ImageIcon, Loader2, Sparkles, Send, Clock,
   Calendar, Tag, FolderTree, Image as ImgIcon, FileText, Search, ShoppingCart,
-  Settings as SettingsIcon, Wand2, Link2, Check, AlertCircle, Eye as EyeIcon,
-  Code2,
+  Wand2, AlertCircle, Eye as EyeIcon, Code2,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { slugify, excerptFromContent, estimateReadTime } from '@/lib/helpers'
@@ -65,28 +63,13 @@ export function PostEditor({ postId }: { postId: string | null }) {
   const [form, setForm] = useState<EditorState>(BLANK)
   const fileRef = useRef<HTMLInputElement>(null)
   const slugTouched = useRef(false)
-  const contentRef = useRef<HTMLTextAreaElement>(null)
 
-  // Insert text at the cursor position in the content textarea
-  const insertAtCursor = (text: string) => {
-    const ta = contentRef.current
-    if (!ta) {
-      update({ content: form.content + '\n\n' + text })
-      return
-    }
-    const start = ta.selectionStart
-    const end = ta.selectionEnd
-    const before = form.content.slice(0, start)
-    const after = form.content.slice(end)
-    const insert = (before.endsWith('\n') || before === '' ? '' : '\n\n') + text + '\n\n'
-    const newContent = before + insert + after
-    update({ content: newContent })
-    // Restore cursor position after the inserted text
-    requestAnimationFrame(() => {
-      ta.focus()
-      const pos = (start + insert.length) as number
-      ta.setSelectionRange(pos, pos)
-    })
+  // Insert HTML content — since the WYSIWYG editor manages its own caret, we
+  // simply append the HTML block to the end of the current content. The
+  // RichTextEditor picks up the new value via its props.
+  const insertAtCursor = (html: string) => {
+    const sep = form.content && !form.content.endsWith('\n') ? '\n\n' : ''
+    update({ content: form.content + sep + html })
   }
 
   useEffect(() => {
@@ -194,8 +177,10 @@ export function PostEditor({ postId }: { postId: string | null }) {
   }
 
   const insertImageIntoContent = (img: { url: string; prompt: string }) => {
-    const md = `\n\n![${img.prompt.slice(0, 80)}](${img.url})\n\n`
-    update({ content: form.content + md })
+    const alt = (img.prompt || '').slice(0, 120).replace(/"/g, '&quot;')
+    const html = `<figure class="article-image"><img src="${img.url}" alt="${alt}" style="max-width:100%;height:auto;border-radius:0.5rem;" /><figcaption>${alt}</figcaption></figure>`
+    const sep = form.content && !form.content.endsWith('\n') ? '\n\n' : ''
+    update({ content: form.content + sep + html })
     toast.success('Image inserted into content.')
   }
 
@@ -268,13 +253,13 @@ export function PostEditor({ postId }: { postId: string | null }) {
             )}
           </div>
 
-          {/* Content editor — WP classic style */}
+          {/* Content editor — WYSIWYG visual editor */}
           <div className="rounded-xl border border-border bg-card overflow-hidden">
             <div className="flex items-center justify-between px-4 py-2.5 border-b border-border bg-secondary/40">
               <div className="flex items-center gap-2">
                 <FileText className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm font-medium">Content</span>
-                <span className="text-xs text-muted-foreground">· Markdown</span>
+                <span className="text-xs text-muted-foreground">· Visual</span>
               </div>
               <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
                 <span className="hidden sm:inline">{wordCount} words</span>
@@ -291,28 +276,11 @@ export function PostEditor({ postId }: { postId: string | null }) {
                 </Button>
               </div>
             </div>
-            <Tabs defaultValue="write">
-              <div className="px-4 pt-2 border-b border-border">
-                <TabsList className="bg-transparent h-9">
-                  <TabsTrigger value="write" className="text-sm"><Sparkles className="h-3.5 w-3.5 mr-1.5" /> Visual</TabsTrigger>
-                  <TabsTrigger value="preview" className="text-sm"><Eye className="h-3.5 w-3.5 mr-1.5" /> Preview</TabsTrigger>
-                </TabsList>
-              </div>
-              <TabsContent value="write" className="m-0">
-                <Textarea
-                  ref={contentRef}
-                  value={form.content}
-                  onChange={(e) => update({ content: e.target.value })}
-                  placeholder={'Start writing…\n\n## Use Markdown for formatting\n\n- **bold**, *italic*, > quotes\n- ### subheadings\n- lists\n\nSeparate paragraphs with blank lines.'}
-                  className="font-mono text-sm min-h-[480px] resize-y border-0 rounded-none focus-visible:ring-0"
-                />
-              </TabsContent>
-              <TabsContent value="preview" className="m-0">
-                <div className="min-h-[480px] p-6">
-                  {form.content ? <Markdown content={form.content} /> : <p className="text-muted-foreground text-sm">Nothing to preview yet.</p>}
-                </div>
-              </TabsContent>
-            </Tabs>
+            <RichTextEditor
+              value={form.content}
+              onChange={(html) => update({ content: html })}
+              minHeight={480}
+            />
           </div>
 
           {/* Excerpt metabox (full width, below content like WP) */}

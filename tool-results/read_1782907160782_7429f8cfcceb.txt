@@ -1,0 +1,556 @@
+     1→'use client'
+     2→
+     3→import { useEffect, useState, useRef } from 'react'
+     4→import { api } from '@/lib/api'
+     5→import type { Post, Category, Media, AffiliateLink } from '@/lib/types'
+     6→import { useApp } from '@/store/app-store'
+     7→import { Button } from '@/components/ui/button'
+     8→import { Input } from '@/components/ui/input'
+     9→import { Textarea } from '@/components/ui/textarea'
+    10→import { Label } from '@/components/ui/label'
+    11→import { Switch } from '@/components/ui/switch'
+    12→import { Badge } from '@/components/ui/badge'
+    13→import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+    14→import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+    15→import { Markdown } from '@/components/site/markdown'
+    16→import { Metabox } from './metabox'
+    17→import { AffiliateLinksEditor } from './affiliate-links-editor'
+    18→import { GenerateImageDialog } from './generate-image-dialog'
+    19→import { InsertHtmlDialog, InsertAffiliateDialog } from './insert-dialogs'
+    20→import {
+    21→  ArrowLeft, Save, Eye, Upload, ImageIcon, Loader2, Sparkles, Send, Clock,
+    22→  Calendar, Tag, FolderTree, Image as ImgIcon, FileText, Search, ShoppingCart,
+    23→  Settings as SettingsIcon, Wand2, Link2, Check, AlertCircle, Eye as EyeIcon,
+    24→  Code2,
+    25→} from 'lucide-react'
+    26→import { toast } from 'sonner'
+    27→import { slugify, excerptFromContent, estimateReadTime } from '@/lib/helpers'
+    28→
+    29→interface EditorState {
+    30→  title: string
+    31→  slug: string
+    32→  excerpt: string
+    33→  content: string
+    34→  coverImage: string
+    35→  coverAlt: string
+    36→  categoryId: string
+    37→  tags: string
+    38→  status: string
+    39→  featured: boolean
+    40→  trending: boolean
+    41→  showAds: boolean
+    42→  metaTitle: string
+    43→  metaDescription: string
+    44→  publishedAt: string
+    45→  affiliateLinks: AffiliateLink[]
+    46→}
+    47→
+    48→const BLANK: EditorState = {
+    49→  title: '', slug: '', excerpt: '', content: '', coverImage: '', coverAlt: '',
+    50→  categoryId: '', tags: '', status: 'DRAFT', featured: false, trending: false,
+    51→  showAds: true, metaTitle: '', metaDescription: '', publishedAt: '', affiliateLinks: [],
+    52→}
+    53→
+    54→export function PostEditor({ postId }: { postId: string | null }) {
+    55→  const { setAdminView, openPost } = useApp()
+    56→  const [categories, setCategories] = useState<Category[]>([])
+    57→  const [media, setMedia] = useState<Media[]>([])
+    58→  const [saving, setSaving] = useState(false)
+    59→  const [loading, setLoading] = useState(!!postId)
+    60→  const [showMedia, setShowMedia] = useState(false)
+    61→  const [uploading, setUploading] = useState(false)
+    62→  const [showGenerator, setShowGenerator] = useState(false)
+    63→  const [showHtmlDialog, setShowHtmlDialog] = useState(false)
+    64→  const [showAffiliateDialog, setShowAffiliateDialog] = useState(false)
+    65→  const [form, setForm] = useState<EditorState>(BLANK)
+    66→  const fileRef = useRef<HTMLInputElement>(null)
+    67→  const slugTouched = useRef(false)
+    68→  const contentRef = useRef<HTMLTextAreaElement>(null)
+    69→
+    70→  // Insert text at the cursor position in the content textarea
+    71→  const insertAtCursor = (text: string) => {
+    72→    const ta = contentRef.current
+    73→    if (!ta) {
+    74→      update({ content: form.content + '\n\n' + text })
+    75→      return
+    76→    }
+    77→    const start = ta.selectionStart
+    78→    const end = ta.selectionEnd
+    79→    const before = form.content.slice(0, start)
+    80→    const after = form.content.slice(end)
+    81→    const insert = (before.endsWith('\n') || before === '' ? '' : '\n\n') + text + '\n\n'
+    82→    const newContent = before + insert + after
+    83→    update({ content: newContent })
+    84→    // Restore cursor position after the inserted text
+    85→    requestAnimationFrame(() => {
+    86→      ta.focus()
+    87→      const pos = (start + insert.length) as number
+    88→      ta.setSelectionRange(pos, pos)
+    89→    })
+    90→  }
+    91→
+    92→  useEffect(() => {
+    93→    let active = true
+    94→    api.categories.list().then(({ categories }) => {
+    95→      if (!active) return
+    96→      setCategories(categories)
+    97→      if (!postId && categories[0]) setForm((f) => ({ ...f, categoryId: categories[0].id }))
+    98→    })
+    99→    api.media.list().then(({ media }) => { if (active) setMedia(media) })
+   100→    return () => { active = false }
+   101→  }, [postId])
+   102→
+   103→  useEffect(() => {
+   104→    if (!postId) { setLoading(false); return }
+   105→    setLoading(true)
+   106→    api.posts.get(postId).then(({ post }) => {
+   107→      setForm({
+   108→        title: post.title, slug: post.slug, excerpt: post.excerpt || '', content: post.content,
+   109→        coverImage: post.coverImage || '', coverAlt: post.coverAlt || '', categoryId: post.categoryId,
+   110→        tags: post.tags || '', status: post.status, featured: post.featured, trending: post.trending,
+   111→        showAds: post.showAds, metaTitle: post.metaTitle || '', metaDescription: post.metaDescription || '',
+   112→        publishedAt: post.publishedAt ? toLocalInput(post.publishedAt) : '',
+   113→        affiliateLinks: (post as any).affiliateLinks || [],
+   114→      })
+   115→    }).finally(() => setLoading(false))
+   116→  }, [postId])
+   117→
+   118→  const update = (patch: Partial<EditorState>) => setForm((f) => ({ ...f, ...patch }))
+   119→
+   120→  const onTitleChange = (title: string) => {
+   121→    if (!slugTouched.current) update({ title, slug: slugify(title) })
+   122→    else update({ title })
+   123→  }
+   124→
+   125→  const upload = async (file: File) => {
+   126→    setUploading(true)
+   127→    try {
+   128→      const { url } = await api.media.upload(file)
+   129→      setMedia((m) => [{ id: url, url, type: 'image', createdAt: new Date().toISOString() }, ...m])
+   130→      update({ coverImage: url })
+   131→      toast.success('Image uploaded.')
+   132→    } catch { toast.error('Upload failed.') } finally { setUploading(false) }
+   133→  }
+   134→
+   135→  // Convert an ISO date to a value usable in <input type="datetime-local">
+   136→  function toLocalInput(iso: string): string {
+   137→    try {
+   138→      const d = new Date(iso)
+   139→      const off = d.getTimezoneOffset()
+   140→      const local = new Date(d.getTime() - off * 60000)
+   141→      return local.toISOString().slice(0, 16)
+   142→    } catch { return '' }
+   143→  }
+   144→
+   145→  // Determine the scheduling state from status + date
+   146→  const scheduledDate = form.publishedAt ? new Date(form.publishedAt) : null
+   147→  const isScheduledFuture = form.status === 'SCHEDULED' && scheduledDate && scheduledDate > new Date()
+   148→
+   149→  const save = async (mode: 'draft' | 'publish' | 'schedule') => {
+   150→    if (!form.title.trim()) { toast.error('Title is required.'); return }
+   151→    if (!form.categoryId) { toast.error('Please choose a category.'); return }
+   152→    if (!form.content.trim()) { toast.error('Content cannot be empty.'); return }
+   153→    if (mode === 'schedule' && !form.publishedAt) {
+   154→      toast.error('Please set a publish date to schedule.')
+   155→      return
+   156→    }
+   157→    if (mode === 'schedule' && scheduledDate && scheduledDate <= new Date()) {
+   158→      toast.error('Schedule date must be in the future.')
+   159→      return
+   160→    }
+   161→
+   162→    let status = form.status
+   163→    if (mode === 'draft') status = 'DRAFT'
+   164→    else if (mode === 'publish') status = 'PUBLISHED'
+   165→    else if (mode === 'schedule') status = 'SCHEDULED'
+   166→
+   167→    setSaving(true)
+   168→    const data: any = {
+   169→      title: form.title, slug: form.slug || slugify(form.title),
+   170→      excerpt: form.excerpt || excerptFromContent(form.content),
+   171→      content: form.content, coverImage: form.coverImage || null, coverAlt: form.coverAlt,
+   172→      categoryId: form.categoryId, tags: form.tags, status,
+   173→      featured: form.featured, trending: form.trending, showAds: form.showAds,
+   174→      metaTitle: form.metaTitle || null, metaDescription: form.metaDescription || null,
+   175→      publishedAt: form.publishedAt || null,
+   176→      affiliateLinks: form.affiliateLinks,
+   177→    }
+   178→    try {
+   179→      let saved: Post
+   180→      if (postId) {
+   181→        const { post } = await api.posts.update(postId, data)
+   182→        saved = post
+   183→      } else {
+   184→        const { post } = await api.posts.create(data)
+   185→        saved = post
+   186→      }
+   187→      const verb = mode === 'publish' ? 'Published!' : mode === 'schedule' ? 'Scheduled!' : 'Saved.'
+   188→      toast.success(verb)
+   189→      setAdminView('posts')
+   190→      if (mode === 'publish') openPost(saved.slug)
+   191→    } catch (e: any) {
+   192→      toast.error(e.message || 'Save failed.')
+   193→    } finally { setSaving(false) }
+   194→  }
+   195→
+   196→  const insertImageIntoContent = (img: { url: string; prompt: string }) => {
+   197→    const md = `\n\n![${img.prompt.slice(0, 80)}](${img.url})\n\n`
+   198→    update({ content: form.content + md })
+   199→    toast.success('Image inserted into content.')
+   200→  }
+   201→
+   202→  if (loading) {
+   203→    return <div className="p-12 text-center"><Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground" /></div>
+   204→  }
+   205→
+   206→  const wordCount = form.content.split(/\s+/).filter(Boolean).length
+   207→  const statusBadge = form.status === 'PUBLISHED'
+   208→    ? { label: 'Published', cls: 'bg-emerald-600 text-white' }
+   209→    : form.status === 'SCHEDULED'
+   210→    ? { label: 'Scheduled', cls: 'bg-amber-500 text-white' }
+   211→    : { label: 'Draft', cls: 'bg-muted text-muted-foreground' }
+   212→
+   213→  return (
+   214→    <div className="p-4 md:p-6 max-w-7xl mx-auto">
+   215→      {/* Top bar — WordPress style */}
+   216→      <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
+   217→        <div className="flex items-center gap-3">
+   218→          <Button variant="ghost" size="sm" onClick={() => setAdminView('posts')}>
+   219→            <ArrowLeft className="h-4 w-4 mr-1.5" /> Articles
+   220→          </Button>
+   221→          <Badge className={statusBadge.cls}>{statusBadge.label}</Badge>
+   222→          {form.title && <span className="text-sm text-muted-foreground truncate max-w-[300px]">{form.title}</span>}
+   223→        </div>
+   224→        <div className="flex items-center gap-2">
+   225→          <Button variant="outline" onClick={() => save('draft')} disabled={saving}>
+   226→            <Save className="h-4 w-4 mr-1.5" /> {saving ? 'Saving…' : 'Save draft'}
+   227→          </Button>
+   228→          {isScheduledFuture ? (
+   229→            <Button onClick={() => save('schedule')} disabled={saving} className="bg-amber-600 hover:bg-amber-700">
+   230→              <Clock className="h-4 w-4 mr-1.5" /> {saving ? 'Saving…' : 'Schedule'}
+   231→            </Button>
+   232→          ) : (
+   233→            <Button onClick={() => save('publish')} disabled={saving}>
+   234→              <Send className="h-4 w-4 mr-1.5" /> {form.status === 'PUBLISHED' ? 'Update' : 'Publish'}
+   235→            </Button>
+   236→          )}
+   237→        </div>
+   238→      </div>
+   239→
+   240→      <div className="grid gap-6 lg:grid-cols-12">
+   241→        {/* MAIN COLUMN */}
+   242→        <div className="lg:col-span-8 space-y-5">
+   243→          {/* Title + slug — WP style */}
+   244→          <div className="rounded-xl border border-border bg-card p-5">
+   245→            <Label className="text-xs text-muted-foreground">Title</Label>
+   246→            <input
+   247→              value={form.title}
+   248→              onChange={(e) => onTitleChange(e.target.value)}
+   249→              placeholder="Add title"
+   250→              className="w-full text-3xl font-display font-semibold bg-transparent border-0 outline-none focus:ring-0 px-0 py-1 placeholder:text-muted-foreground/40"
+   251→            />
+   252→            {form.slug && (
+   253→              <div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+   254→                <span className="opacity-60">Permalink:</span>
+   255→                <span className="font-mono">/{form.slug}</span>
+   256→                <button onClick={() => { slugTouched.current = true }} className="ml-1 text-primary hover:underline">Edit</button>
+   257→              </div>
+   258→            )}
+   259→            {slugTouched.current && (
+   260→              <Input
+   261→                value={form.slug}
+   262→                onChange={(e) => update({ slug: slugify(e.target.value) })}
+   263→                onBlur={() => { slugTouched.current = false }}
+   264→                placeholder="url-slug"
+   265→                className="font-mono text-sm mt-2"
+   266→                autoFocus
+   267→              />
+   268→            )}
+   269→          </div>
+   270→
+   271→          {/* Content editor — WP classic style */}
+   272→          <div className="rounded-xl border border-border bg-card overflow-hidden">
+   273→            <div className="flex items-center justify-between px-4 py-2.5 border-b border-border bg-secondary/40">
+   274→              <div className="flex items-center gap-2">
+   275→                <FileText className="h-4 w-4 text-muted-foreground" />
+   276→                <span className="text-sm font-medium">Content</span>
+   277→                <span className="text-xs text-muted-foreground">· Markdown</span>
+   278→              </div>
+   279→              <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
+   280→                <span className="hidden sm:inline">{wordCount} words</span>
+   281→                <span className="hidden sm:inline">·</span>
+   282→                <span className="hidden sm:inline">{estimateReadTime(form.content)} min read</span>
+   283→                <Button variant="ghost" size="sm" className="h-7" onClick={() => setShowGenerator(true)}>
+   284→                  <Wand2 className="h-3.5 w-3.5 mr-1 text-primary" /> AI Image
+   285→                </Button>
+   286→                <Button variant="ghost" size="sm" className="h-7" onClick={() => setShowAffiliateDialog(true)} disabled={form.affiliateLinks.length === 0}>
+   287→                  <ShoppingCart className="h-3.5 w-3.5 mr-1 text-primary" /> Affiliate
+   288→                </Button>
+   289→                <Button variant="ghost" size="sm" className="h-7" onClick={() => setShowHtmlDialog(true)}>
+   290→                  <Code2 className="h-3.5 w-3.5 mr-1 text-primary" /> HTML
+   291→                </Button>
+   292→              </div>
+   293→            </div>
+   294→            <Tabs defaultValue="write">
+   295→              <div className="px-4 pt-2 border-b border-border">
+   296→                <TabsList className="bg-transparent h-9">
+   297→                  <TabsTrigger value="write" className="text-sm"><Sparkles className="h-3.5 w-3.5 mr-1.5" /> Visual</TabsTrigger>
+   298→                  <TabsTrigger value="preview" className="text-sm"><Eye className="h-3.5 w-3.5 mr-1.5" /> Preview</TabsTrigger>
+   299→                </TabsList>
+   300→              </div>
+   301→              <TabsContent value="write" className="m-0">
+   302→                <Textarea
+   303→                  ref={contentRef}
+   304→                  value={form.content}
+   305→                  onChange={(e) => update({ content: e.target.value })}
+   306→                  placeholder={'Start writing…\n\n## Use Markdown for formatting\n\n- **bold**, *italic*, > quotes\n- ### subheadings\n- lists\n\nSeparate paragraphs with blank lines.'}
+   307→                  className="font-mono text-sm min-h-[480px] resize-y border-0 rounded-none focus-visible:ring-0"
+   308→                />
+   309→              </TabsContent>
+   310→              <TabsContent value="preview" className="m-0">
+   311→                <div className="min-h-[480px] p-6">
+   312→                  {form.content ? <Markdown content={form.content} /> : <p className="text-muted-foreground text-sm">Nothing to preview yet.</p>}
+   313→                </div>
+   314→              </TabsContent>
+   315→            </Tabs>
+   316→          </div>
+   317→
+   318→          {/* Excerpt metabox (full width, below content like WP) */}
+   319→          <Metabox title="Excerpt" icon={<FileText className="h-4 w-4" />} description="A short summary shown in cards, search results and SEO previews. Leave blank to auto-generate from content.">
+   320→            <Textarea
+   321→              value={form.excerpt}
+   322→              onChange={(e) => update({ excerpt: e.target.value })}
+   323→              placeholder="Optional hand-written summary…"
+   324→              rows={3}
+   325→              className="resize-none"
+   326→            />
+   327→            <p className="text-[10px] text-muted-foreground mt-1">{form.excerpt.length} characters</p>
+   328→          </Metabox>
+   329→
+   330→          {/* Affiliate links metabox (full width) */}
+   331→          <Metabox title="Affiliate Links" icon={<ShoppingCart className="h-4 w-4" />} description="Recommended products, supplies or books. Displayed at the bottom of the article with a clear disclosure." action={<Badge variant="secondary">{form.affiliateLinks.length}</Badge>}>
+   332→            <AffiliateLinksEditor links={form.affiliateLinks} onChange={(links) => update({ affiliateLinks: links })} />
+   333→          </Metabox>
+   334→        </div>
+   335→
+   336→        {/* SIDEBAR COLUMN — WordPress metaboxes */}
+   337→        <aside className="lg:col-span-4 space-y-4">
+   338→          {/* Publish metabox — the heart of WP */}
+   339→          <Metabox title="Publish" icon={<Send className="h-4 w-4" />} defaultOpen>
+   340→            <div className="space-y-4">
+   341→              {/* Status / visibility */}
+   342→              <div>
+   343→                <Label className="text-xs text-muted-foreground mb-1.5 block">Publish action</Label>
+   344→                <RadioGroup
+   345→                  value={form.status === 'PUBLISHED' ? 'PUBLISHED' : form.status === 'SCHEDULED' ? 'SCHEDULED' : 'DRAFT'}
+   346→                  onValueChange={(v) => update({ status: v })}
+   347→                  className="space-y-1.5"
+   348→                >
+   349→                  <label className="flex items-center gap-2 text-sm cursor-pointer rounded-md px-2 py-1.5 hover:bg-accent">
+   350→                    <RadioGroupItem value="DRAFT" /> <Save className="h-3.5 w-3.5 text-muted-foreground" /> Save as Draft
+   351→                  </label>
+   352→                  <label className="flex items-center gap-2 text-sm cursor-pointer rounded-md px-2 py-1.5 hover:bg-accent">
+   353→                    <RadioGroupItem value="PUBLISHED" /> <Send className="h-3.5 w-3.5 text-muted-foreground" /> Publish now
+   354→                  </label>
+   355→                  <label className="flex items-center gap-2 text-sm cursor-pointer rounded-md px-2 py-1.5 hover:bg-accent">
+   356→                    <RadioGroupItem value="SCHEDULED" /> <Clock className="h-3.5 w-3.5 text-muted-foreground" /> Schedule for later
+   357→                  </label>
+   358→                </RadioGroup>
+   359→              </div>
+   360→
+   361→              {/* Schedule date — only relevant for SCHEDULED, but always editable */}
+   362→              <div>
+   363→                <Label className="text-xs text-muted-foreground mb-1.5 flex items-center gap-1.5">
+   364→                  <Calendar className="h-3.5 w-3.5" /> {form.status === 'SCHEDULED' ? 'Scheduled for' : form.status === 'PUBLISHED' ? 'Publish date' : 'Publish date (optional)'}
+   365→                </Label>
+   366→                <Input
+   367→                  type="datetime-local"
+   368→                  value={form.publishedAt}
+   369→                  onChange={(e) => update({ publishedAt: e.target.value })}
+   370→                />
+   371→                {form.status === 'SCHEDULED' && scheduledDate && (
+   372→                  <p className={`text-[11px] mt-1 flex items-center gap-1 ${isScheduledFuture ? 'text-amber-600' : 'text-destructive'}`}>
+   373→                    <AlertCircle className="h-3 w-3" />
+   374→                    {isScheduledFuture
+   375→                      ? `Will publish ${scheduledDate.toLocaleString([], { dateStyle: 'long', timeStyle: 'short' })}`
+   376→                      : 'Date is in the past — pick a future date to schedule.'}
+   377→                  </p>
+   378→                )}
+   379→                {form.status === 'SCHEDULED' && !form.publishedAt && (
+   380→                  <p className="text-[11px] mt-1 text-amber-600 flex items-center gap-1">
+   381→                    <AlertCircle className="h-3 w-3" /> Set a date to schedule.
+   382→                  </p>
+   383→                )}
+   384→              </div>
+   385→
+   386→              <div className="border-t border-border pt-3 space-y-2.5">
+   387→                <div className="flex items-center justify-between">
+   388→                  <Label className="text-sm flex items-center gap-1.5"><Sparkles className="h-3.5 w-3.5 text-muted-foreground" /> Featured</Label>
+   389→                  <Switch checked={form.featured} onCheckedChange={(v) => update({ featured: v })} />
+   390→                </div>
+   391→                <div className="flex items-center justify-between">
+   392→                  <Label className="text-sm flex items-center gap-1.5"><EyeIcon className="h-3.5 w-3.5 text-muted-foreground" /> Trending</Label>
+   393→                  <Switch checked={form.trending} onCheckedChange={(v) => update({ trending: v })} />
+   394→                </div>
+   395→                <div className="flex items-center justify-between">
+   396→                  <Label className="text-sm flex items-center gap-1.5"><ImgIcon className="h-3.5 w-3.5 text-muted-foreground" /> Show ads</Label>
+   397→                  <Switch checked={form.showAds} onCheckedChange={(v) => update({ showAds: v })} />
+   398→                </div>
+   399→              </div>
+   400→
+   401→              {/* Action buttons */}
+   402→              <div className="border-t border-border pt-3 flex gap-2">
+   403→                <Button variant="outline" size="sm" className="flex-1" onClick={() => save('draft')} disabled={saving}>
+   404→                  <Save className="h-3.5 w-3.5 mr-1" /> Save draft
+   405→                </Button>
+   406→                {form.status === 'SCHEDULED' ? (
+   407→                  <Button size="sm" className="flex-1 bg-amber-600 hover:bg-amber-700" onClick={() => save('schedule')} disabled={saving || !isScheduledFuture}>
+   408→                    <Clock className="h-3.5 w-3.5 mr-1" /> Schedule
+   409→                  </Button>
+   410→                ) : (
+   411→                  <Button size="sm" className="flex-1" onClick={() => save('publish')} disabled={saving}>
+   412→                    <Send className="h-3.5 w-3.5 mr-1" /> Publish
+   413→                  </Button>
+   414→                )}
+   415→              </div>
+   416→            </div>
+   417→          </Metabox>
+   418→
+   419→          {/* Categories metabox */}
+   420→          <Metabox title="Category" icon={<FolderTree className="h-4 w-4" />}>
+   421→            <div className="space-y-2 max-h-60 overflow-y-auto scroll-lumen">
+   422→              {categories.map((c) => (
+   423→                <label key={c.id} className={`flex items-center gap-2 rounded-md px-2 py-1.5 text-sm cursor-pointer hover:bg-accent ${form.categoryId === c.id ? 'bg-accent' : ''}`}>
+   424→                  <input
+   425→                    type="radio"
+   426→                    name="category"
+   427→                    checked={form.categoryId === c.id}
+   428→                    onChange={() => update({ categoryId: c.id })}
+   429→                    className="accent-primary"
+   430→                  />
+   431→                  <span className="h-2 w-2 rounded-full" style={{ backgroundColor: c.color || '#b45309' }} />
+   432→                  <span>{c.name}</span>
+   433→                </label>
+   434→              ))}
+   435→              {categories.length === 0 && <p className="text-xs text-muted-foreground">No categories yet.</p>}
+   436→            </div>
+   437→          </Metabox>
+   438→
+   439→          {/* Tags metabox */}
+   440→          <Metabox title="Tags" icon={<Tag className="h-4 w-4" />} description="Separate tags with commas.">
+   441→            <Input value={form.tags} onChange={(e) => update({ tags: e.target.value })} placeholder="fluid art, acrylic pouring, beginners" />
+   442→            {form.tags && (
+   443→              <div className="flex flex-wrap gap-1 mt-2">
+   444→                {form.tags.split(',').map((t) => t.trim()).filter(Boolean).map((t, i) => (
+   445→                  <span key={i} className="inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-[11px]">#{t}</span>
+   446→                ))}
+   447→              </div>
+   448→            )}
+   449→          </Metabox>
+   450→
+   451→          {/* Featured image metabox */}
+   452→          <Metabox title="Featured Image" icon={<ImgIcon className="h-4 w-4" />} action={form.coverImage ? <Badge variant="secondary">Set</Badge> : undefined}>
+   453→            <div className="space-y-3">
+   454→              <div className="relative aspect-video overflow-hidden rounded-lg border border-border bg-muted">
+   455→                {form.coverImage ? (
+   456→                  <img src={form.coverImage} alt={form.coverAlt || ''} className="h-full w-full object-cover" />
+   457→                ) : (
+   458→                  <div className="h-full w-full flex flex-col items-center justify-center text-muted-foreground/40 gap-1">
+   459→                    <ImageIcon className="h-6 w-6" />
+   460→                    <span className="text-[10px]">No image set</span>
+   461→                  </div>
+   462→                )}
+   463→              </div>
+   464→              <div className="flex flex-wrap gap-1.5">
+   465→                <Button type="button" variant="outline" size="sm" onClick={() => fileRef.current?.click()} disabled={uploading} className="h-7 text-xs">
+   466→                  {uploading ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Upload className="h-3 w-3 mr-1" />} Upload
+   467→                </Button>
+   468→                <Button type="button" variant="outline" size="sm" onClick={() => setShowMedia(!showMedia)} className="h-7 text-xs">
+   469→                  <ImageIcon className="h-3 w-3 mr-1" /> Library
+   470→                </Button>
+   471→                <Button type="button" variant="outline" size="sm" onClick={() => setShowGenerator(true)} className="h-7 text-xs text-primary border-primary/40 hover:bg-primary/10">
+   472→                  <Wand2 className="h-3 w-3 mr-1" /> Generate
+   473→                </Button>
+   474→                {form.coverImage && (
+   475→                  <Button type="button" variant="ghost" size="sm" onClick={() => update({ coverImage: '' })} className="h-7 text-xs text-destructive">Remove</Button>
+   476→                )}
+   477→              </div>
+   478→              <Input
+   479→                value={form.coverImage}
+   480→                onChange={(e) => update({ coverImage: e.target.value })}
+   481→                placeholder="or paste image URL"
+   482→                className="text-xs font-mono h-8"
+   483→              />
+   484→              <Input
+   485→                value={form.coverAlt}
+   486→                onChange={(e) => update({ coverAlt: e.target.value })}
+   487→                placeholder="alt text (accessibility & SEO)"
+   488→                className="text-xs h-8"
+   489→              />
+   490→              <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) upload(f); e.target.value = '' }} />
+   491→
+   492→              {showMedia && (
+   493→                <div className="grid grid-cols-4 gap-1.5 rounded-lg border border-border p-2 max-h-40 overflow-y-auto scroll-lumen bg-muted/30">
+   494→                  {media.length === 0 ? (
+   495→                    <p className="col-span-full text-center text-xs text-muted-foreground py-3">No images yet.</p>
+   496→                  ) : media.map((m) => (
+   497→                    <button key={m.id} onClick={() => { update({ coverImage: m.url }); setShowMedia(false) }} className="aspect-square overflow-hidden rounded-md border border-border hover:ring-2 ring-primary">
+   498→                      <img src={m.url} alt={m.alt || ''} className="h-full w-full object-cover" />
+   499→                    </button>
+   500→                  ))}
+   501→                </div>
+   502→              )}
+   503→            </div>
+   504→          </Metabox>
+   505→
+   506→          {/* SEO metabox */}
+   507→          <Metabox title="SEO" icon={<Search className="h-4 w-4" />} defaultOpen={false}>
+   508→            <div className="space-y-3">
+   509→              <div>
+   510→                <Label className="text-xs text-muted-foreground">Meta title</Label>
+   511→                <Input value={form.metaTitle} onChange={(e) => update({ metaTitle: e.target.value })} placeholder={form.title || 'Page title'} className="text-sm" />
+   512→                <p className="text-[10px] text-muted-foreground mt-1">{form.metaTitle.length}/60 characters</p>
+   513→              </div>
+   514→              <div>
+   515→                <Label className="text-xs text-muted-foreground">Meta description</Label>
+   516→                <Textarea value={form.metaDescription} onChange={(e) => update({ metaDescription: e.target.value })} placeholder={form.excerpt || 'Page description for search engines'} rows={3} className="text-sm" />
+   517→                <p className="text-[10px] text-muted-foreground mt-1">{form.metaDescription.length}/160 characters</p>
+   518→              </div>
+   519→              {/* Google snippet preview */}
+   520→              <div className="rounded-md border border-border p-2.5 bg-background">
+   521→                <p className="text-[11px] text-emerald-700 truncate">{window.location.origin}/{form.slug || 'post-slug'}</p>
+   522→                <p className="text-sm text-[#1a0dab] truncate font-medium">{form.metaTitle || form.title || 'Post title'}</p>
+   523→                <p className="text-xs text-muted-foreground line-clamp-2">{form.metaDescription || form.excerpt || 'Post excerpt will appear here…'}</p>
+   524→              </div>
+   525→            </div>
+   526→          </Metabox>
+   527→        </aside>
+   528→      </div>
+   529→
+   530→      {/* AI image generator dialog */}
+   531→      <GenerateImageDialog
+   532→        open={showGenerator}
+   533→        onOpenChange={setShowGenerator}
+   534→        defaultPrompt={form.title}
+   535→        onUseAsCover={(img) => { update({ coverImage: img.url, coverAlt: img.prompt.slice(0, 120) }); toast.success('Set as featured image.') }}
+   536→        onInsertIntoContent={insertImageIntoContent}
+   537→      />
+   538→
+   539→      {/* Insert HTML dialog */}
+   540→      <InsertHtmlDialog
+   541→        open={showHtmlDialog}
+   542→        onOpenChange={setShowHtmlDialog}
+   543→        onInsert={insertAtCursor}
+   544→      />
+   545→
+   546→      {/* Insert affiliate block dialog */}
+   547→      <InsertAffiliateDialog
+   548→        open={showAffiliateDialog}
+   549→        onOpenChange={setShowAffiliateDialog}
+   550→        links={form.affiliateLinks}
+   551→        onInsert={insertAtCursor}
+   552→      />
+   553→    </div>
+   554→  )
+   555→}
+   556→

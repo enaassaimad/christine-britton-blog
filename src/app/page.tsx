@@ -40,7 +40,17 @@ function PublicSite() {
 }
 
 function Shell() {
-  const { adminOpen, route } = useApp()
+  const { adminOpen, route, syncFromUrl } = useApp()
+
+  // On first mount: synchronise SPA state to whatever URL the user landed on
+  // (e.g. an article deep-link shared from another user) and register a
+  // popstate listener so the browser back/forward buttons work.
+  useEffect(() => {
+    syncFromUrl()
+    const onPop = () => syncFromUrl()
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
+  }, [syncFromUrl])
 
   // Update document title based on route
   useEffect(() => {

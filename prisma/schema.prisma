@@ -5,8 +5,9 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL")
 }
 
 model User {
@@ -129,6 +130,8 @@ model SiteSetting {
   // AI post generator
   aiApiKey        String?
   aiModel         String?  @default("glm-5.2")
+  // Theme preset id (e.g. 'art', 'food', 'tech', ...)
+  theme           String?  @default("art")
   updatedAt       DateTime @updatedAt
 }
 

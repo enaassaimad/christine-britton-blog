@@ -8,11 +8,11 @@ import type { Page } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { toast } from 'sonner'
-import { Twitter, Instagram, Facebook, Linkedin, Youtube, Mail, MapPin, Send, Shield } from 'lucide-react'
+import { Twitter, Instagram, Facebook, Linkedin, Youtube, Mail, MapPin, Send } from 'lucide-react'
 
 export function Footer() {
   const { settings } = useSettings()
-  const { navigate, openCategory, openAdmin, openPage } = useApp()
+  const { navigate, openCategory, openPage } = useApp()
   const [email, setEmail] = useState('')
   const [pages, setPages] = useState<Page[]>([])
 
@@ -80,7 +80,6 @@ export function Footer() {
               <li><button className="hover:text-primary transition-colors" onClick={() => navigate({ name: 'about' })}>About</button></li>
               <li><button className="hover:text-primary transition-colors" onClick={() => navigate({ name: 'shop' })}>Shop</button></li>
               <li><button className="hover:text-primary transition-colors" onClick={() => navigate({ name: 'contact' })}>Contact</button></li>
-              <li><button className="hover:text-primary transition-colors" onClick={() => openAdmin('login')}><span className="inline-flex items-center gap-1"><Shield className="h-3 w-3" />Admin</span></button></li>
             </ul>
           </div>
 
