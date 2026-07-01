@@ -3,6 +3,7 @@ import { getCurrentUser } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { calculateSEOScore } from '@/lib/seo-score'
 import { slugify, excerptFromContent, estimateReadTime } from '@/lib/helpers'
+import ZAI from 'z-ai-web-dev-sdk'
 
 interface GenerateBody {
   focusKeyword: string
@@ -30,18 +31,12 @@ export async function POST(req: NextRequest) {
   const topic = body.topic || focusKeyword
   const tone = body.tone || 'informative and engaging'
 
-  // Fetch the API key and model from site settings
-  const setting = await db.siteSetting.findUnique({ where: { id: 'singleton' } })
-  const apiKey = setting?.aiApiKey || ''
-  const model = setting?.aiModel || 'glm-5.2'
+  try {
+    const zai = await ZAI.create()
 
-  if (!apiKey) {
-    return NextResponse.json({ error: 'No AI API key configured. Go to Settings → AI and enter your GLM API key.' }, { status: 400 })
-  }
+    const systemPrompt = `You are an expert SEO content writer and editor for an art blog (Christine Britton — fluid art, resin art, drawing, doodle art, posca art, clay art). You write high-quality, original, AdSense-friendly articles that score 88%+ on SEO checks. You write in Markdown.`
 
-  const systemPrompt = `You are an expert SEO content writer and editor for an art blog (Christine Britton — fluid art, resin art, drawing, doodle art, posca art, clay art). You write high-quality, original, AdSense-friendly articles that score 88%+ on SEO checks. You write in Markdown.`
-
-  const userPrompt = `Write a comprehensive, SEO-optimized blog article with the following requirements:
+    const userPrompt = `Write a comprehensive, SEO-optimized blog article with the following requirements:
 
 **Focus keyword:** ${focusKeyword}
 **Related keywords:** ${relatedKeywords.join(', ') || 'none'}
@@ -105,46 +100,16 @@ Use section-1, section-2, section-3 etc. as IDs, matching the order of the TOC e
 
 Write the article now:`
 
-  try {
-    // Call GLM API directly via open.bigmodel.cn
-    const glmResponse = await fetch('https://open.bigmodel.cn/api/paas/v4/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model,
-        messages: [
-          { role: 'assistant', content: systemPrompt },
-          { role: 'user', content: userPrompt },
-        ],
-        thinking: { type: 'disabled' },
-        max_tokens: 65536,
-        temperature: 1.0,
-      }),
+    // Generate ONLY the text (fast, ~10-15s) — image is generated separately by the frontend
+    const completion = await zai.chat.completions.create({
+      messages: [
+        { role: 'assistant', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ],
+      thinking: { type: 'disabled' },
     })
 
-    if (!glmResponse.ok) {
-      const errText = await glmResponse.text()
-      let errMsg = `GLM API error (${glmResponse.status})`
-      try {
-        const errJson = JSON.parse(errText)
-        errMsg = errJson.error?.message || errJson.error?.code || errMsg
-      } catch {
-        if (errText) errMsg = errText.slice(0, 200)
-      }
-      if (glmResponse.status === 401) errMsg = 'Invalid API key. Check Settings → AI.'
-      if (glmResponse.status === 429) errMsg = 'GLM API rate limit reached. Please wait and try again.'
-      return NextResponse.json({ error: errMsg }, { status: glmResponse.status })
-    }
-
-    const completion = await glmResponse.json()
-    let articleContent = completion.choices?.[0]?.message?.content || ''
-
-    if (!articleContent.trim()) {
-      return NextResponse.json({ error: 'GLM returned empty content. Please try again.' }, { status: 502 })
-    }
+    let articleContent = completion.choices[0]?.message?.content || ''
 
     // Clean up: remove code block wrappers if the model added them
     articleContent = articleContent.replace(/^```(?:markdown)?\s*\n?/i, '').replace(/\n?```\s*$/i, '').trim()
@@ -198,7 +163,7 @@ Write the article now:`
       readMinutes: estimateReadTime(contentWithoutH1),
       wordCount: contentWithoutH1.split(/\s+/).filter(Boolean).length,
       imageGenerated: false,
-      imagePrompt,
+      imagePrompt, // frontend uses this to generate the image separately
     })
   } catch (e: any) {
     const msg = e?.message || 'AI generation failed'

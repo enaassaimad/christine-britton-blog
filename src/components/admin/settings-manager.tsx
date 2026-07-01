@@ -11,8 +11,7 @@ import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Save, Loader2, Megaphone, Globe, Palette, Mail, User, Image as ImageIcon, Wand2, LayoutGrid, Check } from 'lucide-react'
-import { THEMES, getTheme, applyTheme } from '@/lib/themes'
+import { Save, Loader2, Megaphone, Globe, Palette, Mail, User, Image as ImageIcon, Wand2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 export function SettingsManager() {
@@ -58,7 +57,6 @@ export function SettingsManager() {
         <TabsList className="flex-wrap h-auto">
           <TabsTrigger value="general"><Globe className="h-3.5 w-3.5 mr-1.5" /> General</TabsTrigger>
           <TabsTrigger value="branding"><Palette className="h-3.5 w-3.5 mr-1.5" /> Branding</TabsTrigger>
-          <TabsTrigger value="theme"><LayoutGrid className="h-3.5 w-3.5 mr-1.5" /> Theme</TabsTrigger>
           <TabsTrigger value="about"><User className="h-3.5 w-3.5 mr-1.5" /> About</TabsTrigger>
           <TabsTrigger value="adsense"><Megaphone className="h-3.5 w-3.5 mr-1.5" /> AdSense</TabsTrigger>
           <TabsTrigger value="social"><Mail className="h-3.5 w-3.5 mr-1.5" /> Social</TabsTrigger>
@@ -111,50 +109,6 @@ export function SettingsManager() {
             <CardContent className="grid gap-4 md:grid-cols-2">
               <Field label="Logo image URL (optional)"><Input value={s.logoUrl || ''} onChange={(e) => update({ logoUrl: e.target.value })} placeholder="/uploads/logo.png" /></Field>
               <Field label="Favicon URL (optional)"><Input value={s.faviconUrl || ''} onChange={(e) => update({ faviconUrl: e.target.value })} placeholder="/favicon.ico" /></Field>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Theme */}
-        <TabsContent value="theme" className="space-y-4 mt-4">
-          <Card>
-            <CardHeader><CardTitle className="text-base flex items-center gap-2"><LayoutGrid className="h-4 w-4 text-primary" /> Theme Presets</CardTitle></CardHeader>
-            <CardContent>
-              <p className="text-xs text-muted-foreground mb-4">Choose a theme that matches your blog's niche. Each theme sets the color palette and fonts for the entire site. Changes apply instantly — click Save to make them permanent.</p>
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {THEMES.map((theme) => {
-                  const isSelected = (s.theme || 'art') === theme.id
-                  return (
-                    <button
-                      key={theme.id}
-                      type="button"
-                      onClick={() => { update({ theme: theme.id, primaryColor: theme.colors.primary, accentColor: theme.colors.accent }); applyTheme(theme) }}
-                      className={`relative rounded-xl border-2 p-4 text-left transition-all hover:shadow-md ${isSelected ? 'border-primary ring-2 ring-primary/20' : 'border-border'}`}
-                    >
-                      {isSelected && (
-                        <div className="absolute right-3 top-3 flex h-6 w-6 items-center justify-center rounded-full bg-primary">
-                          <Check className="h-4 w-4 text-white" />
-                        </div>
-                      )}
-                      {/* Color swatches */}
-                      <div className="flex gap-1.5 mb-3">
-                        <div className="h-8 w-8 rounded-full" style={{ backgroundColor: theme.colors.primary }} />
-                        <div className="h-8 w-8 rounded-full" style={{ backgroundColor: theme.colors.accent }} />
-                        <div className="h-8 w-8 rounded-full border border-border" style={{ backgroundColor: theme.colors.background }} />
-                        <div className="h-8 w-8 rounded-full border border-border" style={{ backgroundColor: theme.colors.secondary }} />
-                      </div>
-                      <p className="font-semibold text-sm">{theme.name}</p>
-                      <p className="text-xs text-primary font-medium mt-0.5">{theme.niche}</p>
-                      <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{theme.description}</p>
-                    </button>
-                  )
-                })}
-              </div>
-              <div className="mt-4 rounded-lg bg-muted/50 p-3 text-xs text-muted-foreground">
-                <p className="font-medium text-foreground mb-1">Current theme: {getTheme(s.theme || 'art').name}</p>
-                <p>Fonts: {getTheme(s.theme || 'art').fontSerif} (headings) + {getTheme(s.theme || 'art').fontSans} (body)</p>
-                <p className="mt-1">The theme overrides the custom colors in the Branding tab. To use custom colors instead, switch to "Art Studio" and then set your colors in Branding.</p>
-              </div>
             </CardContent>
           </Card>
         </TabsContent>

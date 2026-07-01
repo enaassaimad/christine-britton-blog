@@ -14,7 +14,6 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Markdown } from '@/components/site/markdown'
 import { Metabox } from './metabox'
-import { RichTextEditor } from './rich-text-editor'
 import { AffiliateLinksEditor } from './affiliate-links-editor'
 import { GenerateImageDialog } from './generate-image-dialog'
 import { InsertHtmlDialog, InsertAffiliateDialog } from './insert-dialogs'
@@ -68,12 +67,26 @@ export function PostEditor({ postId }: { postId: string | null }) {
   const slugTouched = useRef(false)
   const contentRef = useRef<HTMLTextAreaElement>(null)
 
-  // Insert HTML content into the editor (appends to end — the WYSIWYG editor will re-render)
-  const insertAtCursor = (html: string) => {
-    const current = form.content || ''
-    // Append the HTML block at the end of the content
-    const newContent = current + (current.endsWith('<') || current === '' ? '' : '<br>') + html
+  // Insert text at the cursor position in the content textarea
+  const insertAtCursor = (text: string) => {
+    const ta = contentRef.current
+    if (!ta) {
+      update({ content: form.content + '\n\n' + text })
+      return
+    }
+    const start = ta.selectionStart
+    const end = ta.selectionEnd
+    const before = form.content.slice(0, start)
+    const after = form.content.slice(end)
+    const insert = (before.endsWith('\n') || before === '' ? '' : '\n\n') + text + '\n\n'
+    const newContent = before + insert + after
     update({ content: newContent })
+    // Restore cursor position after the inserted text
+    requestAnimationFrame(() => {
+      ta.focus()
+      const pos = (start + insert.length) as number
+      ta.setSelectionRange(pos, pos)
+    })
   }
 
   useEffect(() => {
@@ -181,8 +194,8 @@ export function PostEditor({ postId }: { postId: string | null }) {
   }
 
   const insertImageIntoContent = (img: { url: string; prompt: string }) => {
-    const html = `<img src="${img.url}" alt="${img.prompt.slice(0, 120)}" style="max-width:100%;height:auto;border-radius:0.5rem;margin:1rem 0;" />`
-    insertAtCursor(html)
+    const md = `\n\n![${img.prompt.slice(0, 80)}](${img.url})\n\n`
+    update({ content: form.content + md })
     toast.success('Image inserted into content.')
   }
 
@@ -255,15 +268,15 @@ export function PostEditor({ postId }: { postId: string | null }) {
             )}
           </div>
 
-          {/* Content editor — WYSIWYG visual editor */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-xs text-muted-foreground px-1">
+          {/* Content editor — WP classic style */}
+          <div className="rounded-xl border border-border bg-card overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-2.5 border-b border-border bg-secondary/40">
               <div className="flex items-center gap-2">
-                <FileText className="h-4 w-4" />
+                <FileText className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm font-medium">Content</span>
-                <span>· Visual Editor</span>
+                <span className="text-xs text-muted-foreground">· Markdown</span>
               </div>
-              <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
                 <span className="hidden sm:inline">{wordCount} words</span>
                 <span className="hidden sm:inline">·</span>
                 <span className="hidden sm:inline">{estimateReadTime(form.content)} min read</span>
@@ -278,12 +291,28 @@ export function PostEditor({ postId }: { postId: string | null }) {
                 </Button>
               </div>
             </div>
-            <RichTextEditor
-              value={form.content}
-              onChange={(html) => update({ content: html })}
-              placeholder="Start writing your article…"
-              minHeight={480}
-            />
+            <Tabs defaultValue="write">
+              <div className="px-4 pt-2 border-b border-border">
+                <TabsList className="bg-transparent h-9">
+                  <TabsTrigger value="write" className="text-sm"><Sparkles className="h-3.5 w-3.5 mr-1.5" /> Visual</TabsTrigger>
+                  <TabsTrigger value="preview" className="text-sm"><Eye className="h-3.5 w-3.5 mr-1.5" /> Preview</TabsTrigger>
+                </TabsList>
+              </div>
+              <TabsContent value="write" className="m-0">
+                <Textarea
+                  ref={contentRef}
+                  value={form.content}
+                  onChange={(e) => update({ content: e.target.value })}
+                  placeholder={'Start writing…\n\n## Use Markdown for formatting\n\n- **bold**, *italic*, > quotes\n- ### subheadings\n- lists\n\nSeparate paragraphs with blank lines.'}
+                  className="font-mono text-sm min-h-[480px] resize-y border-0 rounded-none focus-visible:ring-0"
+                />
+              </TabsContent>
+              <TabsContent value="preview" className="m-0">
+                <div className="min-h-[480px] p-6">
+                  {form.content ? <Markdown content={form.content} /> : <p className="text-muted-foreground text-sm">Nothing to preview yet.</p>}
+                </div>
+              </TabsContent>
+            </Tabs>
           </div>
 
           {/* Excerpt metabox (full width, below content like WP) */}
