@@ -1,13 +1,13 @@
 // Prisma schema for an editorial blog / CMS with AdSense support
+// MySQL provider for Hostinger deployment
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
   url      = env("DATABASE_URL")
-  directUrl = env("DATABASE_URL")
 }
 
 model User {
@@ -17,7 +17,7 @@ model User {
   password  String
   role      String   @default("ADMIN") // ADMIN | EDITOR
   avatar    String?
-  bio       String?
+  bio       String?  @db.Text
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -28,7 +28,7 @@ model Category {
   id          String   @id @default(cuid())
   name        String   @unique
   slug        String   @unique
-  description String?
+  description String?  @db.Text
   color       String?  // accent color (hex)
   icon        String?  // lucide icon name
   createdAt   DateTime @default(now())
@@ -41,8 +41,8 @@ model Post {
   id            String    @id @default(cuid())
   title         String
   slug          String    @unique
-  excerpt       String?
-  content       String    // markdown / html
+  excerpt       String?   @db.Text
+  content       String    @db.LongText // markdown / html
   coverImage    String?
   coverAlt      String?
   status        String    @default("DRAFT") // DRAFT | PUBLISHED | SCHEDULED
@@ -51,11 +51,11 @@ model Post {
   readMinutes   Int       @default(5)
   tags          String?   // comma separated
   metaTitle     String?
-  metaDescription String?
+  metaDescription String? @db.Text
   // AdSense control
   showAds       Boolean   @default(true)
   // Affiliate links: JSON-encoded array of {id, title, url, description, image, price, label}
-  affiliateLinks String?
+  affiliateLinks String?  @db.LongText
   views         Int       @default(0)
   likes         Int       @default(0)
 
@@ -82,7 +82,7 @@ model Comment {
   post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
   author    String
   email     String
-  content   String
+  content   String   @db.Text
   status    String   @default("PENDING") // PENDING | APPROVED | SPAM
   createdAt DateTime @default(now())
 
@@ -93,7 +93,7 @@ model SiteSetting {
   id              String   @id @default("singleton")
   siteName        String   @default("Lumen Journal")
   tagline         String   @default("Stories, ideas & thoughtful living")
-  description     String?
+  description     String?  @db.Text
   logoText        String?
   logoUrl         String?
   faviconUrl      String?
@@ -112,7 +112,7 @@ model SiteSetting {
   youtube         String?
   // About
   aboutTitle      String?
-  aboutContent    String?
+  aboutContent    String?  @db.Text
   aboutImage      String?
   // AdSense
   adsenseClient   String?  // ca-pub-XXXXXXXXXXXXXXXX
@@ -124,7 +124,7 @@ model SiteSetting {
   adsEnabled      Boolean  @default(true)
   // Newsletter
   newsletterTitle String?
-  newsletterText  String?
+  newsletterText  String?  @db.Text
   // Footer
   footerText      String?
   // AI post generator
@@ -138,8 +138,8 @@ model SiteSetting {
 model Media {
   id        String   @id @default(cuid())
   url       String
-  alt       String?
-  caption   String?
+  alt       String?  @db.Text
+  caption   String?  @db.Text
   width     Int?
   height    Int?
   type      String   @default("image") // image | video
@@ -157,8 +157,8 @@ model Page {
   id          String   @id @default(cuid())
   title       String
   slug        String   @unique
-  content     String   // markdown
-  excerpt     String?
+  content     String   @db.LongText // markdown
+  excerpt     String?  @db.Text
   type        String   @default("LEGAL") // LEGAL | CUSTOM
   showInFooter Boolean @default(true)
   order       Int      @default(0)
@@ -170,8 +170,8 @@ model DigitalProduct {
   id            String   @id @default(cuid())
   title         String
   slug          String   @unique
-  excerpt       String?
-  description   String   // markdown
+  excerpt       String?  @db.Text
+  description   String   @db.LongText // markdown
   coverImage    String?
   coverAlt      String?
   price         String   // e.g. "$19.99" or "Free"
